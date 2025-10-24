@@ -20,47 +20,48 @@ concept Tickable = requires(T t, float dt, ecs& e){
     { t.tick(dt, e) } -> std::same_as<void*>;
 };
     
-// CRTP system class using C++23 "Deducing This"
+// CRTP style system class using C++23 "Deducing This"
 class System {
-public:
-    System(float tickrate) : 
+protected: 
+    // Protected base constructor to ensure only ever instantiated though inheritance
+    System(float tickrate = 60.0f) : 
         _tickrate(tickrate), 
         _tickInterval(1.0f / tickrate),
         _accumulator(0),
-        _lastUpdate(std::chrono::steady_clock::now()) {};
+        _tickFunc(nullptr) {};
 
-        virtual ~System() = default;
+public:
+    // Lambda Constructor
+    template<typename Func>
+        reqiores std::invokable<Func, float, ecs&> // requires func is invokable and has float and ecs (match tick description.)
+    System(float tickrate = 60.0f, Func&& tickFunc) : 
+        _tickrate(tickrate), 
+        _tickInterval(1.0f / tickrate),
+        _accumulator(0),
+        _tickFunc(std::forward<Func>(tickFunc)) {}; // Forward constructor for our tick function
 
-        // called per frame
-        template<typename Self>
-            requires Tickable<Self>
-        void update(this Self&& self, float deltaTime, ecs& ecs) {
-            auto now = std::chrono::steady_clock::now(); // Current time
-            auto deltaT = now - self._lastUpdate; // Time since last tick
-            self._lastUpdate = now;
+    virtual ~System() = default;
 
-            self._accumulator += deltaT.count(); // _accumulate.
+    template<typename Self>
+        requires Tickable<Self>
+    void update(this Self&& self, float deltaTime, ecs& ecs) {
+        self._accumulator += deltaTime.count(); // _accumulate.
 
-            while(self._accumulator >= self._tickInterval){
-                self.tick(deltaTime, ecs);
-                self._accumulator--;
-            }
+        while(self._accumulator >= self._tickInterval){
+            self.tick(deltaTime, ecs);
+            self._accumulator--;
         }
+    }
 
-        virtual void tick() = 0; // Tick method to be overridden in subclasses.
+    virtual void tick() = 0; // Tick method to be overridden in subclasses.
 
-private:
+protected:
     float _tickrate; // Ticks per second
     float _tickInterval; // Seconds per tick.
     float _accumulator; // Accumulated time since last tick
-    std::chrono::steady_clock::time_point _lastUpdate; // Last tick point.
-};
 
-// CRTP system implementation for performance-critical processes.
-
-// Provide super simple inline system interface intended for simple functionality
-class InlineSystem : public System {
-
+private:
+    std::function<float, ecs&> _tickFunc; 
 };
 
 } // namespace gxe
