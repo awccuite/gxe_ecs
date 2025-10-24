@@ -8,12 +8,15 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 set(SOURCE_FILES
     main.cpp
-    ecs/components.hpp
-    ecs/idManager.hpp
-    ecs/idManager.cpp
-    ecs/sparseSet.hpp
-    ecs/entity.hpp
     ecs/ecs.hpp
+    ecs/components.hpp
+
+    ecs/entities/idManager.hpp
+    ecs/entities/idManager.cpp
+    ecs/entities/sparseSet.hpp
+    ecs/entities/entity.hpp
+
+    ecs/systems/system.hpp
 )
 
 find_package(raylib REQUIRED)

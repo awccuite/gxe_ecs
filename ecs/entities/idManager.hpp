@@ -2,7 +2,7 @@
 
 #include <vector>
 
-#include "components.hpp"
+#include "../components.hpp"
 
 // Lets use a flag/bitset system for ID'ing which components an entity has.
 // Eg, we offset by the value in our ComponentType class.

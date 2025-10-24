@@ -6,9 +6,11 @@
 // #include <typeindex>
 
 #include "components.hpp"
-#include "idManager.hpp"
-#include "sparseSet.hpp"
-#include "entity.hpp" // Inlucde method signatures for Entity.
+#include "entities/idManager.hpp"
+#include "entities/sparseSet.hpp"
+#include "entities/entity.hpp" // Inlucde method signatures for Entity.
+
+#include "systems/system.hpp"
 
 #include <cstddef>
 #include <iostream>
@@ -25,10 +27,7 @@ public:
     ~ecs() = default;
 
     entity createEntity(){
-        entityid id = _idManager.createEntity();
-        // std::cout << "Created entity " << id << "\n";
-
-        return entity(id, this);
+        return entity(_idManager.createEntity(), this);
     }
 
     template<typename T>
@@ -101,4 +100,4 @@ private:
 
 } // namespace gxe
 
-#include "entity.tpp" // Template implementations for Entit, this avoids circular dependencies.
+#include "entities/entity.tpp" // Template implementations for Entit, this avoids circular dependencies.

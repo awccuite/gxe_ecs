@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ecs.hpp"
+#include "../ecs.hpp"
 
 namespace gxe {
 
