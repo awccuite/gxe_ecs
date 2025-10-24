@@ -5,30 +5,30 @@
 namespace gxe {
 
 template<typename T>
-Entity& Entity::addComponent(const T& component) {
+entity& entity::addComponent(const T& component) {
     _ecs->addComponent(_id, component);
     return *this;
 }
 
 template<typename T>
-Entity& Entity::removeComponent() {
+entity& entity::removeComponent() {
     _ecs->removeComponent<T>(_id);
     return *this;
 }
 
 template<typename T>
-T& Entity::getComponent() {
+T& entity::getComponent() {
     return _ecs->getComponent<T>(_id);
 }
 
 template<typename T>
-const T& Entity::getComponent() const {
+const T& entity::getComponent() const {
     return _ecs->getComponent<T>(_id);
 }
 
-template<typename T>
-bool Entity::hasComponent() const {
-    return _ecs->hasComponent<T>(_id);
+template<typename ...Ts>
+bool entity::hasComponents() const {
+    return (_ecs->hasComponents<Ts>(_id) && ...);
 }
 
 } // namespace gxe

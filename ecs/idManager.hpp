@@ -11,18 +11,18 @@ namespace gxe {
 
 // Manages the creation and destruction of Entities (ID's). When an entity is created, we assign it an id,
 // When an entity is destroyed, we remove it, and place its ID back in the collection of available ID's
-class IdManager {
+class idManager {
 public:
-    IdManager();
-    ~IdManager() = default;
+    idManager();
+    ~idManager() = default;
 
-    EntityID createEntity(); // Return an id, and remove it from availableEntities
-    void destroyEntity(EntityID id);
+    entityid createEntity(); // Return an id, and remove it from availableEntities
+    void destroyEntity(entityid id);
     int numEntities();
 
 private:
-    void allocateEntities(EntityID startID);
-    std::vector<EntityID> _availableIds; // Treat as stack for uniqueID's.
+    void allocateEntities(entityid startID);
+    std::vector<entityid> _availableIds; // Treat as stack for uniqueID's.
 };
 
 }

@@ -6,8 +6,8 @@
 
 namespace gxe {
 
-using EntityID = uint32_t;
-constexpr EntityID NULL_ID = std::numeric_limits<EntityID>::max();
+using entityid = uint32_t;
+constexpr entityid NULL_ID = std::numeric_limits<entityid>::max();
 
 enum class ComponentType {
     TRANSFORM,
@@ -19,35 +19,35 @@ enum class ComponentType {
 };
 
 // Position and rotation
-struct Transform {
+struct transform {
     float x, y, z;
     float rotation;
 };
 
-struct Velocity {
+struct velocity {
     float dx, dy, dz;
 };
 
-struct Sprite {
+struct sprite {
     int textureId;
     float width, height;
 };
 
 template<typename T>
-class SparseSet;
+class sparseSet;
 
 // Forwarding for component types. Add used component types to this tuple
 // for compile time resolution of SparseSets for the ECS.
-using SelectedComponents = std::tuple<Transform, Velocity, Sprite>;
+using selectedComponents = std::tuple<transform, velocity, sprite>;
 
 template<typename Tuple>
 struct ToSparseSets;
 
 template<typename ...Ts>
 struct ToSparseSets<std::tuple<Ts...>> {
-    using type = std::tuple<SparseSet<Ts>...>;
+    using type = std::tuple<sparseSet<Ts>...>;
 };
 
-using Components = ToSparseSets<SelectedComponents>::type;
+using components = ToSparseSets<selectedComponents>::type;
 
 } // Namespace gxe

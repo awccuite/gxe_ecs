@@ -8,27 +8,27 @@ namespace gxe {
 constexpr size_t INITIAL_SPARSE_SET_CAPACITY = 1024;
 
 // Type erased sparse set interface for ECS
-class SparseSetInterface {
+class sparseSetInterface {
 public:
-    virtual ~SparseSetInterface() = default;
+    virtual ~sparseSetInterface() = default;
     virtual void clear() = 0;
     virtual size_t size() const = 0;
 };
 
 template<typename T>
-class SparseSet : public SparseSetInterface {
+class sparseSet : public sparseSetInterface {
 public:
-    SparseSet();
-    ~SparseSet() = default;
+    sparseSet();
+    ~sparseSet() = default;
 
-    void insert(const EntityID, const T& component);
-    void remove(const EntityID);
+    void insert(const entityid, const T& component);
+    void remove(const entityid);
 
-    T& get(const EntityID id); // Non const reference to the component of id
-    const T& get(const EntityID id) const; // Const reference to the component of id
+    T& get(const entityid id); // Non const reference to the component of id
+    const T& get(const entityid id) const; // Const reference to the component of id
 
-    const bool has(const EntityID id) const;
-    const EntityID getEntityID(const size_t index) const; // Get entityID for entity at index
+    const bool has(const entityid id) const;
+    const entityid getEntityId(const size_t index) const; // Get entityID for entity at index
 
     T& getByIndex(const size_t index); // Get coomponent at dense index
 
@@ -36,18 +36,18 @@ public:
 
     void clear() override;
 
-    struct Entry {
-        EntityID id;
+    struct entry {
+        entityid id;
         T component;
     };
 
-    std::vector<Entry>& data(){
+    std::vector<entry>& data(){
         return dense;
     }
 
 private:
-    std::vector<EntityID> sparse; // EntityID -> index in dense array. (This means we will have some wasted memory when entities do not fully saturate their components)
-    std::vector<Entry> dense; // Dense representation of our components. Use struct so we can extend potentially.
+    std::vector<entityid> sparse; // EntityID -> index in dense array. (This means we will have some wasted memory when entities do not fully saturate their components)
+    std::vector<entry> dense; // Dense representation of our components. Use struct so we can extend potentially.
 
 };
 

@@ -6,23 +6,23 @@ namespace gxe {
 
 class ecs; // Forward declare ecs
 
-class Entity {
+class entity {
 public:
     // Prevent copying
-    Entity(const Entity&) = delete;
-    Entity& operator=(const Entity&) = delete;
+    entity(const entity&) = delete;
+    entity& operator=(const entity&) = delete;
 
     // Allow moving
-    Entity(Entity&&) = default;
-    Entity& operator=(Entity&&) = default;
+    entity(entity&&) = default;
+    entity& operator=(entity&&) = default;
 
-    EntityID id() const { return _id; }
-
-    template<typename T>
-    Entity& addComponent(const T& component);
+    entityid id() const { return _id; }
 
     template<typename T>
-    Entity& removeComponent();
+    entity& addComponent(const T& component);
+
+    template<typename T>
+    entity& removeComponent();
 
     template<typename T>
     T& getComponent();
@@ -30,14 +30,14 @@ public:
     template<typename T>
     const T& getComponent() const;
 
-    template<typename T>
-    bool hasComponent() const;
+    template<typename ...Ts>
+    bool hasComponents() const;
 
 private:
     friend class ecs;
-    Entity(EntityID id, ecs* ecsInstance) : _id(id), _ecs(ecsInstance) {}
+    entity(entityid id, ecs* ecsInstance) : _id(id), _ecs(ecsInstance) {}
 
-    EntityID _id;
+    entityid _id;
     ecs* _ecs;
 };
 

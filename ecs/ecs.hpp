@@ -10,7 +10,9 @@
 #include "sparseSet.hpp"
 #include "entity.hpp" // Inlucde method signatures for Entity.
 
+#include <cstddef>
 #include <iostream>
+#include <limits>
 
 // Sparse set ECS implementation.
 
@@ -22,54 +24,79 @@ public:
     ecs() = default;
     ~ecs() = default;
 
-    Entity createEntity(){
-        EntityID id = _idManager.createEntity();
+    entity createEntity(){
+        entityid id = _idManager.createEntity();
+        // std::cout << "Created entity " << id << "\n";
 
-        std::cout << "Created entity " << id << "\n";
-
-        return Entity(id, this);
+        return entity(id, this);
     }
 
     template<typename T>
-    void addComponent(EntityID id, const T& component) {
+    void addComponent(entityid id, const T& component) {
         getSet<T>()->insert(id, component);
     }
 
     template<typename T>
-    void removeComponent(EntityID id) {
+    void removeComponent(entityid id) {
         getSet<T>()->remove(id);
     }
 
     template<typename T>
-    T& getComponent(EntityID id) {
+    T& getComponent(entityid id) {
         return getSet<T>()->get(id);
     }
 
     template<typename T>
-    const T& getComponent(EntityID id) const {
+    const T& getComponent(entityid id) const {
         return const_cast<ecs*>(this)->getSet<T>()->get(id);
     }
 
     template<typename ...Ts>
-    bool hasComponents(EntityID id) const {
+    bool hasComponents(entityid id) {
         return (getSet<Ts>()->has(id) && ...);
     }
 
     template<typename T>
-    SparseSet<T>* getSet() { // Return the dense set component
-        return &std::get<SparseSet<T>>(_activeComponents);
+    sparseSet<T>* getSet() {
+        return &std::get<sparseSet<T>>(_activeComponents);
     }
 
     // Variadic templated forEach function that accepts a
-    // lambda function for system functionality.
+    // lambda function for system functionality. 
+    // Applies to entites that only have the specified component signature.
     template<typename ...Ts, typename Func>
-    void forEach(Func&& func) {
+    void forEachEntityWith(Func&& func) {
+        auto* firstSet = getFirstSet<Ts...>();
+        if(!firstSet) { return; };
 
+        for(size_t i = 0; i < firstSet->size(); i++){
+            entityid id = firstSet->getEntityId(i);
+
+            if(hasComponents<Ts...>(id)){ // If the Entity has all the required components.
+                func(id, getComponent<Ts>(id)...);
+            }
+        }
     }
 
 private:
-    IdManager _idManager; // Manages ID assignment at creation and deletion of objects.
-    Components _activeComponents;
+    template<typename T>
+    size_t getSetSize() {
+        auto* set = getSet<T>();
+        return set ? set->size() : 0;
+    }
+
+    template<typename First, typename ...Rest>
+    sparseSet<First>* getFirstSet(){
+        return getSet<First>();
+    }
+
+    template<typename ...Ts>
+    size_t getSmallestSetSize() {
+        return std::min({getSetSize<Ts>()...});
+    }
+
+    idManager _idManager; // Manages ID assignment at creation and deletion of objects.
+    components _activeComponents;
 };
 
 } // namespace gxe

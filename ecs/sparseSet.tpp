@@ -3,13 +3,15 @@
 namespace gxe {
 
 #include <cstddef>
+#include <cassert>
+
 template<typename T>
-SparseSet<T>::SparseSet() {
+sparseSet<T>::sparseSet() {
     sparse.resize(INITIAL_SPARSE_SET_CAPACITY, NULL_ID);
 }
 
 template<typename T>
-void SparseSet<T>::insert(const EntityID id, const T& component){
+void sparseSet<T>::insert(const entityid id, const T& component){
     if(id >= sparse.size()){ // Resize to the id and then some.
         sparse.resize(id + INITIAL_SPARSE_SET_CAPACITY, NULL_ID);
     }
@@ -20,7 +22,7 @@ void SparseSet<T>::insert(const EntityID id, const T& component){
 
     size_t denseIndex = static_cast<size_t>(dense.size());
 
-    Entry e{id, component};
+    entry e{id, component};
     dense.push_back(e);
 
     sparse[id] = denseIndex;
@@ -28,7 +30,7 @@ void SparseSet<T>::insert(const EntityID id, const T& component){
 
 // Remove an entity from the sparse set. This does not free the ID though.
 template<typename T>
-void SparseSet<T>::remove(const EntityID id){
+void sparseSet<T>::remove(const entityid id){
     if(id >= sparse.size() || sparse[id] == NULL_ID){
         return; // DNE in set
     }
@@ -46,40 +48,40 @@ void SparseSet<T>::remove(const EntityID id){
 
 // Return reference to component
 template<typename T>
-T& SparseSet<T>::get(const EntityID id){
+T& sparseSet<T>::get(const entityid id){
     assert(has(id) && "Entity missing component");
     return dense[sparse[id]].component;
 }
 
 // Return const reference to component
 template<typename T>
-const T& SparseSet<T>::get(const EntityID id) const {
+const T& sparseSet<T>::get(const entityid id) const {
     assert(has(id) && "Entity missing component const");
     return dense[sparse[id]].component;
 }
 
 template<typename T>
-const bool SparseSet<T>::has(const EntityID id) const {
+const bool sparseSet<T>::has(const entityid id) const {
     return id < sparse.size() && sparse[id] != NULL_ID;
 }
 
 template<typename T>
-const EntityID SparseSet<T>::getEntityID(const size_t index) const {
+const entityid sparseSet<T>::getEntityId(const size_t index) const {
     return dense[index].id;
 }
 
 template<typename T>
-T& SparseSet<T>::getByIndex(const size_t index){
+T& sparseSet<T>::getByIndex(const size_t index){
     return dense[index].component;
 }
 
 template<typename T>
-size_t SparseSet<T>::size() const {
+size_t sparseSet<T>::size() const {
     return dense.size();
 }
 
 template<typename T>
-void SparseSet<T>::clear(){
+void sparseSet<T>::clear(){
     sparse.clear();
     dense.clear();
 }
