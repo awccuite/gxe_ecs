@@ -1,6 +1,7 @@
 #pragma once
 
 #include <chrono>
+#include <concepts>
 
 // A system is a function that runs repeatedly on 
 // some timestep T (we can call this "ticks", = iter per second).
@@ -11,7 +12,15 @@
 // Allow instantiation of systems to be flexible based on neccesary use cases for said systems.
 
 namespace gxe {
+
+class ecs; // Forward declare ecs
+
+template<typename T> // Concept that requires a system to implement a "tick" method.
+concept Tickable = requires(T t, float dt, ecs& e){
+    { t.tick(dt, e) } -> std::same_as<void*>;
+};
     
+// CRTP system class using C++23 "Deducing This"
 class System {
 public:
     System(float tickrate) : 
@@ -23,16 +32,18 @@ public:
         virtual ~System() = default;
 
         // called per frame
-        void update() {
+        template<typename Self>
+            requires Tickable<Self>
+        void update(this Self&& self, float deltaTime, ecs& ecs) {
             auto now = std::chrono::steady_clock::now(); // Current time
-            auto deltaT = now - _lastUpdate; // Time since last tick
-            _lastUpdate = now;
+            auto deltaT = now - self._lastUpdate; // Time since last tick
+            self._lastUpdate = now;
 
-            _accumulator += deltaT.count(); // _accumulate.
+            self._accumulator += deltaT.count(); // _accumulate.
 
-            while(_accumulator >= _tickInterval){
-                tick();
-                _accumulator--;
+            while(self._accumulator >= self._tickInterval){
+                self.tick(deltaTime, ecs);
+                self._accumulator--;
             }
         }
 
@@ -46,10 +57,6 @@ private:
 };
 
 // CRTP system implementation for performance-critical processes.
-template<typename Derived>
-class SystemCRTP {
-
-};
 
 // Provide super simple inline system interface intended for simple functionality
 class InlineSystem : public System {

@@ -2,9 +2,9 @@ cmake_minimum_required(VERSION 3.14)
 
 project (cpu_renderer LANGUAGES CXX)
 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+# set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 set(SOURCE_FILES
     main.cpp
@@ -16,7 +16,7 @@ set(SOURCE_FILES
     ecs/entities/sparseSet.hpp
     ecs/entities/entity.hpp
 
-    ecs/systems/system.hpp
+    ecs/systems/systems.hpp
 )
 
 find_package(raylib REQUIRED)
