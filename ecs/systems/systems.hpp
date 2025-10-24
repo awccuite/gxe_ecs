@@ -62,7 +62,7 @@ protected:
     float _accumulator; // Accumulated time since last tick
 
 private:
-    std::function<float, ecs&> _tickFunc; 
+    std::function<void(float, ecs&)> _tickFunc; // std::function<returnType(...argTypes)>;
 };
 
 } // namespace gxe
