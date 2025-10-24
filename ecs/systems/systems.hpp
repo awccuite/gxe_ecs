@@ -2,6 +2,7 @@
 
 #include <chrono>
 #include <concepts>
+#include <functional>
 
 // A system is a function that runs repeatedly on 
 // some timestep T (we can call this "ticks", = iter per second).
@@ -33,8 +34,8 @@ protected:
 public:
     // Lambda Constructor
     template<typename Func>
-        reqiores std::invokable<Func, float, ecs&> // requires func is invokable and has float and ecs (match tick description.)
-    System(float tickrate = 60.0f, Func&& tickFunc) : 
+        requires std::invocable<Func, float, ecs&> // requires func is invokable and has float and ecs (match tick description.)
+    System(Func&& tickFunc, float tickrate = 60.0f) : 
         _tickrate(tickrate), 
         _tickInterval(1.0f / tickrate),
         _accumulator(0),
@@ -45,7 +46,7 @@ public:
     template<typename Self>
         requires Tickable<Self>
     void update(this Self&& self, float deltaTime, ecs& ecs) {
-        self._accumulator += deltaTime.count(); // _accumulate.
+        self._accumulator += deltaTime; // _accumulate.
 
         while(self._accumulator >= self._tickInterval){
             self.tick(deltaTime, ecs);
