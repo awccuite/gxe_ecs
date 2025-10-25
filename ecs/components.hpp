@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <vector>
 #include <limits>
 #include <tuple>
 
@@ -43,8 +44,6 @@ struct physics {
 template<typename T>
 class sparseSet;
 
-// Forwarding for component types. Add used component types to this tuple
-// for compile time resolution of SparseSets for the ECS.
 using selectedComponents = std::tuple<transform, velocity, sprite, physics>;
 
 template<typename Tuple>

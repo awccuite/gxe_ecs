@@ -6,6 +6,9 @@ namespace gxe {
 
 class ecs; // Forward declare ecs
 
+// Entities need a signature associated with them, that
+// lets us check what components they have. A signature is a bitset.
+
 class entity {
 public:
     // Prevent copying

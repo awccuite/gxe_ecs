@@ -25,8 +25,9 @@ concept Tickable = requires(T t, float dt, ecs& e){
 class System {
 protected: 
     // Protected base constructor to ensure only ever instantiated though inheritance
-    System(float tickrate = 60.0f) : 
-        _tickrate(tickrate), 
+    System(ecs& ecs, float tickrate = 60.0f) :
+        _ecs(ecs),
+        _tickrate(tickrate),
         _tickInterval(1.0f / tickrate),
         _accumulator(0),
         _tickFunc(nullptr) {};
@@ -35,8 +36,8 @@ public:
     // Lambda Constructor
     template<typename Func>
         requires std::invocable<Func, float, ecs&> // requires func is invokable and has float and ecs (match tick description.)
-    System(Func&& tickFunc, float tickrate = 60.0f) : 
-        _tickrate(tickrate), 
+    System(Func&& tickFunc, float tickrate = 60.0f) :
+        _tickrate(tickrate),
         _tickInterval(1.0f / tickrate),
         _accumulator(0),
         _tickFunc(std::forward<Func>(tickFunc)) {}; // Forward constructor for our tick function

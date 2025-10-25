@@ -13,8 +13,6 @@
 #include "systems/systems.hpp"
 
 #include <cstddef>
-#include <iostream>
-#include <limits>
 
 // Sparse set ECS implementation.
 
@@ -26,16 +24,23 @@ public:
     ecs() = default;
     ~ecs() = default;
 
-    entity createEntity(){
-        return entity(_idManager.createEntity(), this);
+    entity& createEntity(){ // Create the entity within the _entities vector.
+        entityid id = _idManager.createEntity();
+
+        if(id >= _entities.size()){ // Reserve extra space. Fill with empty/null entities
+            _entities.resize(id + INITIAL_SPARSE_SET_CAPACITY, entity(NULL_ID, nullptr));
+        }
+
+        _entities.emplace(_entities.begin() + id, entity(id, this));
+        return _entities[id];
     }
 
-    // Need to delete its components. 
-    // Need to remove from the idmanager.
     void destroyEntity(entityid id){
-        _idManager.destroyEntity(id;)
+        _idManager.destroyEntity(id); // Free the ID 
         // For all the sets which it has a component, remove the component from the set.
         // TODO: For each sparse set with a component tied to ID, remove it from the sparse set.
+        
+
     }
 
     template<typename T>
@@ -76,7 +81,7 @@ public:
         auto* firstSet = getFirstSet<Ts...>();
         if(!firstSet) { return; };
 
-        for(size_t i = 0; i < firstSet->size(); i++){
+        for(std::size_t i = 0; i < firstSet->size(); i++){
             entityid id = firstSet->getEntityId(i);
 
             if(hasComponents<Ts...>(id)){ // If the Entity has all the required components.
@@ -87,7 +92,7 @@ public:
 
 private:
     template<typename T>
-    size_t getSetSize() {
+    std::size_t getSetSize() {
         auto* set = getSet<T>();
         return set ? set->size() : 0;
     }
@@ -98,12 +103,14 @@ private:
     }
 
     template<typename ...Ts>
-    size_t getSmallestSetSize() {
+    std::size_t getSmallestSetSize() {
         return std::min({getSetSize<Ts>()...});
     }
 
+    std::vector<entity> _entities; // Vector of entities by indexed by their ID.
+
     idManager _idManager; // Manages ID assignment at creation and deletion of objects.
-    components _activeComponents;
+    components _activeComponents; // Sparse set component collection. access via std::get<sparseSet<T>*>(_activeComponents)
 };
 
 } // namespace gxe
