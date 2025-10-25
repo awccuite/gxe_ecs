@@ -63,6 +63,7 @@ protected:
 
 private:
     std::function<void(float, ecs&)> _tickFunc; // std::function<returnType(...argTypes)>;
+    ecs& _ecs;
 };
 
 } // namespace gxe

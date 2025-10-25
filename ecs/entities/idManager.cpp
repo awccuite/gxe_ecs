@@ -7,8 +7,8 @@
 
 namespace gxe {
 
-// const uint32_t INITIAL_ENTITY_LIMIT = INITIAL_SPARSE_SET_CAPACITY; // Set an initial entity limit of 1024 entities.
-const uint32_t INITIAL_ENTITY_LIMIT = 32;
+const uint32_t INITIAL_ENTITY_LIMIT = INITIAL_SPARSE_SET_CAPACITY; // Set an initial entity limit of 1024 entities.
+// const uint32_t INITIAL_ENTITY_LIMIT = 32;
 const entityid INITIIAL_ENTITY_ID = 0;
 
 idManager::idManager(){
@@ -24,14 +24,19 @@ entityid idManager::createEntity(){
         allocateEntities(id);
     }
 
+    _numEntities++;
     return id;
+}
+
+// We want Id's to be reused in the potential
+// case that we delete and spawn entities in vast quantities.
+void idManager::destroyEntity(entityid id){
+    _availableIds.push_back(id);
 }
 
 void idManager::allocateEntities(entityid startId){
     entityid endId = startId + INITIAL_ENTITY_LIMIT;
     _availableIds.reserve(_availableIds.size() + INITIAL_ENTITY_LIMIT);
-
-    std::cout << "Allocating entities " << startId + 1 << " to " << endId << "\n";
 
     for(entityid i = endId; i > startId; i--){
         _availableIds.emplace_back(i);

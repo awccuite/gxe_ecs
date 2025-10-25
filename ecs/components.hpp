@@ -6,6 +6,9 @@
 
 namespace gxe {
 
+// Components are data, not functionality.
+// Functionality lives in systems, which operate over components.
+
 using entityid = uint32_t;
 constexpr entityid NULL_ID = std::numeric_limits<entityid>::max();
 

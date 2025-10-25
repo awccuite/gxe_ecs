@@ -30,6 +30,14 @@ public:
         return entity(_idManager.createEntity(), this);
     }
 
+    // Need to delete its components. 
+    // Need to remove from the idmanager.
+    void destroyEntity(entityid id){
+        _idManager.destroyEntity(id;)
+        // For all the sets which it has a component, remove the component from the set.
+        // TODO: For each sparse set with a component tied to ID, remove it from the sparse set.
+    }
+
     template<typename T>
     void addComponent(entityid id, const T& component) {
         getSet<T>()->insert(id, component);

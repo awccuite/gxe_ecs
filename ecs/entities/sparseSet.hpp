@@ -46,6 +46,8 @@ public:
     }
 
 private:
+    void rebalance(); // TODO: Rebalance the sparse set dense array.
+
     std::vector<entityid> sparse; // EntityID -> index in dense array. (This means we will have some wasted memory when entities do not fully saturate their components)
     std::vector<entry> dense; // Dense representation of our components. Use struct so we can extend potentially.
 

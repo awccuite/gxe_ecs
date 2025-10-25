@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.14)
 
-project (cpu_renderer LANGUAGES CXX)
+project (gxe_ecs LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
@@ -21,7 +21,7 @@ set(SOURCE_FILES
 
 find_package(raylib REQUIRED)
 
-add_executable(cpu_renderer ${SOURCE_FILES})
+add_executable(gxe_ecs ${SOURCE_FILES})
 
-target_include_directories(cpu_renderer PRIVATE ${CMAKE_SOURCE_DIR})
-target_link_libraries(cpu_renderer PRIVATE raylib)
+target_include_directories(gxe_ecs PRIVATE ${CMAKE_SOURCE_DIR})
+target_link_libraries(gxe_ecs PRIVATE raylib)
