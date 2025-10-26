@@ -6,3 +6,4 @@ build/
 *.tmp
 .clangd
 compile_commands.json
+summary.md
