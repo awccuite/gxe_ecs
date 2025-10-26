@@ -36,6 +36,8 @@ public:
     template<typename ...Ts>
     bool hasComponents() const;
 
+    componentSignature& signature() { return _signature; };
+
 private:
     friend class ecs;
     entity(entityid id, ecs* ecsInstance) : _id(id), _ecs(ecsInstance) {};

@@ -46,7 +46,7 @@ public:
     entity& addComponent(entityid id, const T& component) { // Return entity& for chaining
         getSet<T>()->insert(id, component);
 
-        // Need to update the signature for the component.
+        // _entities[id].signature().set()
 
         return _entities[id];
     }
