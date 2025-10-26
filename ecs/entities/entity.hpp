@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../components.hpp"
+#include "../componentMetaInfo.hpp"
 
 namespace gxe {
 

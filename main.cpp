@@ -1,5 +1,4 @@
 #include <cstdlib>
-#include <iostream>
 #include <raylib.h>
 
 #include "ecs/components.hpp"

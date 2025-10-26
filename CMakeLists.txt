@@ -4,16 +4,19 @@ cmake_minimum_required(VERSION 3.14)
 set(CMAKE_CXX_COMPILER "/opt/homebrew/opt/llvm/bin/clang++")
 set(CMAKE_C_COMPILER "/opt/homebrew/opt/llvm/bin/clang")
 
-project (gxe_ecs LANGUAGES CXX)
+project (gxe_ecs)
 
 set(CMAKE_CXX_STANDARD 23)
-set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 set(SOURCE_FILES
     main.cpp
     ecs/ecs.hpp
     ecs/components.hpp
+    ecs/componentMetaInfo.hpp
 
     ecs/entities/idManager.hpp
     ecs/entities/idManager.cpp
