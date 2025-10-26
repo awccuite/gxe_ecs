@@ -16,7 +16,6 @@ set(SOURCE_FILES
     main.cpp
     ecs/ecs.hpp
     ecs/components.hpp
-    ecs/componentMetaInfo.hpp
 
     ecs/entities/idManager.hpp
     ecs/entities/idManager.cpp

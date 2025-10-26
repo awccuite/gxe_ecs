@@ -2,6 +2,7 @@
 
 #include "idManager.hpp"
 #include <cstddef>
+#include <functional>
 
 namespace gxe {
 

@@ -5,8 +5,6 @@
 // #include <any>
 // #include <typeindex>
 
-#include "components.hpp"
-#include "ecs/componentMetaInfo.hpp"
 #include "entities/idManager.hpp"
 #include "entities/sparseSet.hpp"
 #include "entities/entity.hpp" // Inlucde method signatures for Entity.
@@ -86,6 +84,11 @@ public:
         return &std::get<sparseSet<T>>(_activeComponents);
     }
 
+    template<typename T>
+    const sparseSet<T>* getSet() const {
+        return &std::get<sparseSet<T>>(_activeComponents);
+    }
+
     // Variadic templated forEach function that accepts a
     // lambda function for system functionality. 
     // Applies to entites that only have the specified component signature.
@@ -94,10 +97,9 @@ public:
         auto* smallestSet = getSmallestSet<Ts...>();
         if(!smallestSet) { return; };
 
-        for(const auto& entry : smallestSet->data()) {
-            entityid id = entry.id;
-            if(hasComponents<Ts...>(id)) {
-                func(id, getComponent<Ts>(id)...);
+        for(auto& entry : smallestSet->data()){
+            if(hasComponents<Ts...>(entry.id)){ // If the Entity has all the required components.
+                func(entry.id, getComponent<Ts>(entry.id)...);
             }
         }
     }
@@ -109,20 +111,29 @@ private:
         return set ? set->size() : 0;
     }
 
-    template<typename First, typename ...Rest>
-    sparseSet<First>* getFirstSet(){
-        return getSet<First>();
+    // Helper: get the index of the smallest set among Ts...
+    template<typename ...Ts>
+    std::size_t getSmallestSetIndex() const {
+        std::array<std::size_t, sizeof...(Ts)> sizes = { getSet<Ts>()->size()... };
+        return static_cast<std::size_t>(
+            std::distance(sizes.begin(), std::min_element(sizes.begin(), sizes.end()))
+        );
     }
 
+    template<typename ...Ts, std::size_t... Is>
+    auto* getSmallestSetImpl(std::size_t idx, std::index_sequence<Is...>) {
+        using ret_type = std::common_type_t<sparseSet<Ts>*...>;
+        ret_type result = nullptr;
+        ((idx == Is ? result = getSet<std::tuple_element_t<Is, std::tuple<Ts...>>>(), 0 : 0), ...);
+        return result;
+    }
+
+    // Helper: get the concrete sparseSet<T> pointer for the smallest set
     template<typename ...Ts>
     auto* getSmallestSet() {
-        sparseSetInterface* smallest = nullptr;
-        std::size_t minSize = std::numeric_limits<std::size_t>::max();
-        
-        ((getSet<Ts>()->size() < minSize ? 
-            (minSize = getSet<Ts>()->size(), smallest = getSet<Ts>()) : nullptr), ...);
-        
-        return smallest;
+        constexpr std::size_t N = sizeof...(Ts);
+        std::size_t idx = getSmallestSetIndex<Ts...>();
+        return getSmallestSetImpl<Ts...>(idx, std::make_index_sequence<N>{});
     }
 
     // Set for index methods

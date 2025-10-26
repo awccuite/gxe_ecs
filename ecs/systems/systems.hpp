@@ -1,7 +1,6 @@
 #pragma once
 
 #include <concepts>
-#include <functional>
 
 // A system is a function that runs repeatedly on 
 // some timestep T (we can call this "ticks", = iter per second).

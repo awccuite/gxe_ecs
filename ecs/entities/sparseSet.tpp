@@ -12,11 +12,11 @@ void sparseSet<T>::insert(const entityid id, const T& component){
     }
 
     if(sparse[id] != NULL_ID){ // Overwrite if already exists.
-        dense[sparse[id]].component = std::forward<T>(component);
+        dense[sparse[id]].component = component;
         return;
     }
 
-    dense.emplace_back(id, std::forward<T>(component));
+    dense.emplace_back(id, component);
     sparse[id] = dense.size() - 1;
 }
 

@@ -1,7 +1,6 @@
 #pragma once
 
-#include "../componentMetaInfo.hpp"
-#include "ecs/components.hpp"
+#include "../componentSignature.hpp"
 
 namespace gxe {
 
