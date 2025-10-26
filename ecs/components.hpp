@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <vector>
+#include <bitset>
 #include <limits>
 #include <tuple>
 
@@ -11,16 +12,17 @@ namespace gxe {
 // Functionality lives in systems, which operate over components.
 
 using entityid = uint32_t;
-constexpr entityid NULL_ID = std::numeric_limits<entityid>::max();
+constexpr inline entityid NULL_ID = std::numeric_limits<entityid>::max();
 
 enum class ComponentType {
-    TRANSFORM,
-    VELOCITY,
-    SPRITE,
-    MESH,
-    GRAVITY,
-    COUNT
+    transform,
+    velocity,
+    sprite,
+    physics,
+    count
 };
+
+constexpr std::size_t n_components = static_cast<std::size_t>(ComponentType::count);
 
 // Position and rotation
 struct transform {
@@ -55,5 +57,9 @@ struct ToSparseSets<std::tuple<Ts...>> {
 };
 
 using components = ToSparseSets<selectedComponents>::type;
+
+struct componentSignature {
+    std::bitset<n_components> _bitset;
+};
 
 } // Namespace gxe

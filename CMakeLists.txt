@@ -1,5 +1,9 @@
 cmake_minimum_required(VERSION 3.14)
 
+# Set compilers BEFORE project() command
+set(CMAKE_CXX_COMPILER "/opt/homebrew/opt/llvm/bin/clang++")
+set(CMAKE_C_COMPILER "/opt/homebrew/opt/llvm/bin/clang")
+
 project (gxe_ecs LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 23)

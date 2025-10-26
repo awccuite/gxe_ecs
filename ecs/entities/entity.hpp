@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../components.hpp"
+#include <bitset>
 
 namespace gxe {
 
@@ -11,11 +12,11 @@ class ecs; // Forward declare ecs
 
 class entity {
 public:
-    // Prevent copying
-    entity(const entity&) = delete;
-    entity& operator=(const entity&) = delete;
+    // Copy constructors
+    entity(const entity&) = default;
+    entity& operator=(const entity&) = default;
 
-    // Allow moving
+    // Move constructors
     entity(entity&&) = default;
     entity& operator=(entity&&) = default;
 
@@ -38,10 +39,11 @@ public:
 
 private:
     friend class ecs;
-    entity(entityid id, ecs* ecsInstance) : _id(id), _ecs(ecsInstance) {}
+    entity(entityid id, ecs* ecsInstance) : _id(id), _ecs(ecsInstance) {};
 
     entityid _id;
     ecs* _ecs;
+    componentSignature _signature;
 };
 
 } // namespace gxe

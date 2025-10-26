@@ -27,11 +27,11 @@ public:
     entity& createEntity(){ // Create the entity within the _entities vector.
         entityid id = _idManager.createEntity();
 
-        if(id >= _entities.size()){ // Reserve extra space. Fill with empty/null entities
-            _entities.resize(id + INITIAL_SPARSE_SET_CAPACITY, entity(NULL_ID, nullptr));
+        if(id >= _entities.size()){ // Reserve extra space.
+            _entities.reserve(id + INITIAL_SPARSE_SET_CAPACITY);
         }
 
-        _entities.emplace(_entities.begin() + id, entity(id, this));
+        _entities.emplace(_entities.begin() + id, entity(id, this)); // Construct new entity in place.
         return _entities[id];
     }
 
