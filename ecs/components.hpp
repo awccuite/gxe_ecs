@@ -31,7 +31,7 @@ struct physics {
     float mass;
 };
 
-using selectedComponents = std::tuple<gxe::transform, gxe::velocity, gxe::sprite, gxe::physics>;
+using selectedComponents = std::tuple<transform, velocity, sprite, physics>;
 
 // Template logic for compile time resolution of component related classes.
 
@@ -59,11 +59,11 @@ struct IndexOf<T, std::tuple<First, Rest...>, Index> {
         : IndexOf<T, std::tuple<Rest...>, Index + 1>::value;
 };
 
-template<typename T, std::size_t Index>
-struct IndexOf<T, std::tuple<>, Index> {
-    static_assert(sizeof(T) == 0, "Type T not found in selectedComponents tuple!");
-    static constexpr std::size_t value = Index;
-};
+// template<typename T, std::size_t Index>
+// struct IndexOf<T, std::tuple<>, Index> {
+//     static_assert(sizeof(T) == 0, "Type T not found in selectedComponents tuple!");
+//     static constexpr std::size_t value = Index;
+// };
 
 template<typename T>
 constexpr std::size_t componentIndex = IndexOf<T, selectedComponents>::value;
