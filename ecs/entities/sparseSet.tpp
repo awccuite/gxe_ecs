@@ -31,7 +31,7 @@ void sparseSet<T>::remove(const entityid id){
     std::size_t lastIndex = dense.size() - 1;
 
     if(denseIndex != lastIndex){
-        std::swap(dense[denseIndex], dense[lastIndex]);
+        dense[denseIndex] = std::move(dense[lastIndex]);
         sparse[dense[denseIndex].id] = denseIndex; // Update the sparse index of the swapped elements.
     }
 
