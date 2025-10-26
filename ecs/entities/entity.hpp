@@ -37,6 +37,7 @@ public:
     bool hasComponents() const;
 
     componentSignature& signature() { return _signature; };
+    const componentSignature& signature() const { return _signature; }; // Const overload
 
 private:
     friend class ecs;

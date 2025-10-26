@@ -12,6 +12,15 @@ namespace gxe {
 using entityid = uint32_t;
 constexpr inline entityid NULL_ID = std::numeric_limits<entityid>::max();
 
+enum class ComponentType : std::size_t {
+    Transform = 0,
+    Velocity,
+    Sprite,
+    Physics,
+    // Add new components here
+    Count
+};
+
 // DEFINE NEW COMPONENTS HERE
 struct transform {
     float x, y, z;
@@ -33,8 +42,7 @@ struct physics {
 
 using selectedComponents = std::tuple<transform, velocity, sprite, physics>;
 
-// Template logic for compile time resolution of component related classes.
-
+// Template logic for compile time resolution of component sparse sets.
 template<typename T>
 class sparseSet; // Forward declaration of sparseSet
 
@@ -46,39 +54,83 @@ struct ToSparseSets<std::tuple<Ts...>> {
     using type = std::tuple<sparseSet<Ts>...>;
 };
 
-using components = ToSparseSets<selectedComponents>::type;
+using components = ToSparseSets<selectedComponents>::type; // gives std::tuple<sparseSet<components>, ...>
 
-// Recursive IndexOf template for setting the index of components.
-template<typename T, typename Tuple, std::size_t Index = 0>
-struct IndexOf;
-
-template<typename T, typename First, typename... Rest, std::size_t Index>
-struct IndexOf<T, std::tuple<First, Rest...>, Index> {
-    static constexpr std::size_t value = std::is_same_v<T, First> 
-        ? Index 
-        : IndexOf<T, std::tuple<Rest...>, Index + 1>::value;
+template<typename T> 
+struct ComponentID {
+    // Primary template - will cause compile error if used with unregistered type
+    static_assert(sizeof(T) == 0, "Component type not registered! Add ComponentID specialization.");
 };
 
-// template<typename T, std::size_t Index>
-// struct IndexOf<T, std::tuple<>, Index> {
-//     static_assert(sizeof(T) == 0, "Type T not found in selectedComponents tuple!");
-//     static constexpr std::size_t value = Index;
-// };
+// Specializations for each component type
+template<> struct ComponentID<transform> { 
+    static constexpr ComponentType value = ComponentType::Transform; 
+};
+
+template<> struct ComponentID<velocity> { 
+    static constexpr ComponentType value = ComponentType::Velocity; 
+};
+
+template<> struct ComponentID<sprite> { 
+    static constexpr ComponentType value = ComponentType::Sprite; 
+};
+
+template<> struct ComponentID<physics> { 
+    static constexpr ComponentType value = ComponentType::Physics; 
+};
+
+constexpr std::size_t componentIndex(ComponentType type) {
+    return static_cast<std::size_t>(type);
+}
 
 template<typename T>
-constexpr std::size_t componentIndex = IndexOf<T, selectedComponents>::value;
-inline constexpr std::size_t n_components = std::tuple_size_v<selectedComponents>;
+constexpr std::size_t componentIndex() {
+    return componentIndex(ComponentID<T>::value);
+}
 
-// Index in bitset -> Component Type.
-template<std::size_t Index, typename Tuple>
-struct TypeAt;
+// Number of components
+inline constexpr std::size_t n_components = static_cast<std::size_t>(ComponentType::Count);
 
-template<std::size_t Index, typename...Ts>
-struct TypeAt<Index, std::tuple<Ts...>> {
-    using type = std::tuple_element_t<Index, std::tuple<Ts...>>;
+// Enum -> Component mapping.
+template<ComponentType Type>
+struct ComponentFromEnum {
+    // Primary template - specialized below
 };
 
+template<> struct ComponentFromEnum<ComponentType::Transform> { using type = transform; };
+template<> struct ComponentFromEnum<ComponentType::Velocity> { using type = velocity; };
+template<> struct ComponentFromEnum<ComponentType::Sprite> { using type = sprite; };
+template<> struct ComponentFromEnum<ComponentType::Physics> { using type = physics; };
+
+// Alias for easier use
+template<ComponentType Type>
+using ComponentFromEnum_t = typename ComponentFromEnum<Type>::type;
+
+// Runtime index to type mapping (useful for iteration over component masks)
 template<std::size_t Index>
-using ComponentAt = typename TypeAt<Index, selectedComponents>::type;
+using ComponentAt = ComponentFromEnum_t<static_cast<ComponentType>(Index)>;
+
+// Compile time checks and debug utils
+template<typename T>
+concept IsComponent = requires {
+    { ComponentID<T>::value } -> std::convertible_to<ComponentType>;
+};
+
+// Get component name as string (useful for debugging)
+constexpr const char* componentName(ComponentType type) {
+    switch(type) {
+        case ComponentType::Transform: return "Transform";
+        case ComponentType::Velocity: return "Velocity";
+        case ComponentType::Sprite: return "Sprite";
+        case ComponentType::Physics: return "Physics";
+        case ComponentType::Count: return "Count";
+        default: return "Unknown";
+    }
+}
+
+template<typename T>
+constexpr const char* componentName() {
+    return componentName(ComponentID<T>::value);
+}
 
 } // Namespace gxe

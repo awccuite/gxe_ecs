@@ -14,7 +14,7 @@ public:
     entityid createEntity(); // Return an id, and remove it from availableEntities
     void destroyEntity(entityid id);
 
-    int entityCount() { return _numEntities; };
+    int entityCount() const { return _numEntities; };
 
 private:
     void allocateEntities(entityid startID);
