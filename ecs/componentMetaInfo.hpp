@@ -8,11 +8,8 @@
 
 namespace gxe {
 
-// Components are data, not functionality.
-// Functionality lives in systems, which operate over components.
-
 template<typename T>
-class sparseSet;
+class sparseSet; // Forward declaration of sparseSet
 
 template<typename Tuple>
 struct ToSparseSets;
@@ -39,17 +36,31 @@ template<typename T>
 constexpr std::size_t componentIndex = IndexOf<T, selectedComponents>::value;
 inline constexpr std::size_t n_components = std::tuple_size_v<selectedComponents>;
 
+// Index in bitset -> Component Type.
+template<std::size_t Index, typename Tuple>
+struct TypeAt;
+
+template<std::size_t Index, typename...Ts>
+struct TypeAt<Index, std::tuple<Ts...>> {
+    using type = std::tuple_element_t<Index, std::tuple<Ts...>>;
+};
+
+template<std::size_t Index>
+using ComponentAt = typename TypeAt<Index, selectedComponents>::type;
+
 class componentSignature {
 public:
     componentSignature() = default;
 
-    // TODO: Migrate to use indexOf<T>
+    // Set component as true for entity mask
     template<typename T>
-    void set() { _bitset.set(componentIndex<T>, true); };// Set 1
+    void set() { _bitset.set(componentIndex<T>, true); };
 
+    // Set component as false for entity mask
     template<typename T>
     void reset() { _bitset.set(componentIndex<T>, false); }; // Set 0
 
+    // Check if entity has component
     template<typename T>
     bool test() const { return _bitset.test(componentIndex<T>); }; // Check
 

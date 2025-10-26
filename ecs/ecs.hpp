@@ -6,6 +6,7 @@
 // #include <typeindex>
 
 #include "components.hpp"
+#include "ecs/componentMetaInfo.hpp"
 #include "entities/idManager.hpp"
 #include "entities/sparseSet.hpp"
 #include "entities/entity.hpp" // Inlucde method signatures for Entity.
@@ -35,18 +36,23 @@ public:
     }
 
     void destroyEntity(entityid id){
-        _idManager.destroyEntity(id); // Free the ID 
-        // For all the sets which it has a component, remove the component from the set.
-        // TODO: For each sparse set with a component tied to ID, remove it from the sparse set.
+        _idManager.destroyEntity(id); // Free the ID
+        entity& e = _entities[id];
         
+        for(std::size_t i = 0; i < n_components; i++){
+            if(e.signature().bits().test(i)){ // If this entity has component.
+                removeComponentAtIndex(id, i);
+            }
+        }
 
+        e.signature().resetAll();
+        _entities[id] = entity(NULL_ID, nullptr); // Replace with null entity.
     }
 
     template<typename T>
     entity& addComponent(entityid id, const T& component) { // Return entity& for chaining
         getSet<T>()->insert(id, component);
-
-        
+        _entities[id].signature().set<T>();
 
         return _entities[id];
     }
@@ -54,6 +60,8 @@ public:
     template<typename T>
     entity& removeComponent(entityid id) { // Return entity& for chaining
         getSet<T>()->remove(id);
+        _entities[id].signature().reset<T>();
+
         return _entities[id];
     }
 
@@ -109,6 +117,16 @@ private:
     template<typename ...Ts>
     std::size_t getSmallestSetSize() {
         return std::min({getSetSize<Ts>()...});
+    }
+
+    // Set for index methods
+    template<std::size_t... Is>
+    void removeComponentAtIndexImpl(entityid id, std::size_t index, std::index_sequence<Is...>){
+        ((Is == index ? (getSet<ComponentAt<Is>>()->remove(id), 0) : 0), ...);
+    }
+
+    void removeComponentAtIndex(entityid id, std::size_t index){
+        removeComponentAtIndexImpl(id, index, std::make_index_sequence<n_components>{});
     }
 
     std::vector<entity> _entities; // Vector of entities by indexed by their ID.
