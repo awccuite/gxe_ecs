@@ -31,6 +31,7 @@ entityid idManager::createEntity(){
 // case that we delete and spawn entities in vast quantities.
 void idManager::destroyEntity(entityid id){
     _availableIds.push_back(id);
+    _numEntities--;
 }
 
 void idManager::allocateEntities(entityid startId){

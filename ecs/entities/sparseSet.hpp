@@ -18,7 +18,10 @@ public:
 template<typename T>
 class sparseSet : public sparseSetInterface {
 public:
-    sparseSet();
+    sparseSet(){
+        dense.reserve(INITIAL_SPARSE_SET_CAPACITY);
+        sparse.reserve(INITIAL_SPARSE_SET_CAPACITY);
+    };
     ~sparseSet() = default;
 
     void insert(const entityid, const T& component);
@@ -41,9 +44,14 @@ public:
         T component;
     };
 
-    std::vector<entry>& data(){
-        return dense;
-    }
+    const std::vector<entry>& data() const { return dense; };
+    std::vector<entry>& data() { return dense; };
+
+    void prefetch(entityid id) const {
+        if(has(id)) {
+            __builtin_prefetch(&dense[sparse[id]], 0, 1);
+        }
+    };
 
 private:
     // void rebalance(); // TODO: Rebalance the sparse set dense array.

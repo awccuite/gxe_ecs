@@ -6,7 +6,7 @@ namespace gxe {
 
 template<typename T>
 entity& entity::addComponent(const T& component) {
-    _ecs->addComponent(_id, component);
+    _ecs->addComponent(_id, std::forward<T>(component));
     return *this;
 }
 

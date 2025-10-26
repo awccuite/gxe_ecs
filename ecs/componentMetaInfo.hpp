@@ -89,6 +89,20 @@ public:
     std::size_t count() const { return _bitset.count(); }
     const std::bitset<n_components>& bits() const { return _bitset; }
 
+    bool empty() const { return _bitset.none(); };
+
+    // Use intrinsics for bit scanning
+    std::size_t firstSet() const {
+        if(_bitset.none()) return n_components;
+        return __builtin_ctzll(_bitset.to_ullong()); // clang call to find the first set bit index in the bitset.
+    }
+    
+    std::size_t nextSet(std::size_t pos) const {
+        auto shifted = _bitset >> (pos + 1);
+        if(shifted.none()) return n_components;
+        return (pos + 1) + __builtin_ctzll(shifted.to_ullong()); // clang call to find next bit from position that is set.
+    }
+
 private:
     std::bitset<n_components> _bitset;
 };

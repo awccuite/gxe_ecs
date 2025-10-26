@@ -16,54 +16,41 @@ namespace gxe {
 class ecs; // Forward declare ecs
 
 template<typename T> // Concept that requires a system to implement a "tick" method.
-concept Tickable = requires(T t, float dt, ecs& e){
-    { t.tick(dt, e) } -> std::same_as<void*>;
+concept Tickable = requires(T t, ecs& e){
+    { t.tick(e) } -> std::same_as<void>;
 };
     
 // CRTP style system class using C++23 "Deducing This"
 class System {
-protected: 
-    // Protected base constructor to ensure only ever instantiated though inheritance
-    System(ecs& ecs, float tickrate = 60.0f) :
-        _ecs(ecs),
+public: 
+    explicit System(ecs& ecs, float tickrate = 60.0f) :
         _tickrate(tickrate),
         _tickInterval(1.0f / tickrate),
-        _accumulator(0),
-        _tickFunc(nullptr) {};
+        _accumulator(0) {};
 
-public:
-    // Lambda Constructor
-    template<typename Func>
-        requires std::invocable<Func, float, ecs&> // requires func is invokable and has float and ecs (match tick description.)
-    System(Func&& tickFunc, float tickrate = 60.0f) :
-        _tickrate(tickrate),
-        _tickInterval(1.0f / tickrate),
-        _accumulator(0),
-        _tickFunc(std::forward<Func>(tickFunc)) {}; // Forward constructor for our tick function
-
-    virtual ~System() = default;
+    ~System() = default;
 
     template<typename Self>
         requires Tickable<Self>
     void update(this Self&& self, float deltaTime, ecs& ecs) {
-        self._accumulator += deltaTime; // _accumulate.
-
-        while(self._accumulator >= self._tickInterval){
-            self.tick(deltaTime, ecs);
-            self._accumulator--;
+        self._accumulator += deltaTime;
+        
+        while(self._accumulator >= self._tickInterval) { // While we've accumulated more delta time than the tick period.
+            self.tick(ecs);  // Calls derived class method directly (no vtable)
+            self._accumulator -= self._tickInterval; // Decr by tick interval.
         }
     }
 
-    virtual void tick() = 0; // Tick method to be overridden in subclasses.
+    virtual void tick(ecs& ecs) = 0; // Tick method to be overridden in subclasses.
+
+    float tickrate() const { return _tickrate; }
+    float tickInterval() const { return _tickInterval; }
 
 protected:
     float _tickrate; // Ticks per second
     float _tickInterval; // Seconds per tick.
     float _accumulator; // Accumulated time since last tick
 
-private:
-    std::function<void(float, ecs&)> _tickFunc; // std::function<returnType(...argTypes)>;
-    ecs& _ecs;
 };
 
 } // namespace gxe

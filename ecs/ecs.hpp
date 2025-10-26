@@ -21,7 +21,9 @@ namespace gxe {
 
 class ecs {
 public:
-    ecs() = default;
+    ecs() {
+        _entities.reserve(INITIAL_SPARSE_SET_CAPACITY);
+    };
     ~ecs() = default;
 
     entity& createEntity(){ // Create the entity within the _entities vector.
@@ -36,17 +38,16 @@ public:
     }
 
     void destroyEntity(entityid id){
-        _idManager.destroyEntity(id); // Free the ID
-        entity& e = _entities[id];
-        
-        for(std::size_t i = 0; i < n_components; i++){
-            if(e.signature().bits().test(i)){ // If this entity has component.
-                removeComponentAtIndex(id, i);
-            }
+        auto& sig = _entities[id].signature();
+
+        for(size_t i = sig.firstSet(); i < n_components; i = sig.nextSet(i)){
+            removeComponentAtIndex(id, i);
         }
 
-        e.signature().resetAll();
-        _entities[id] = entity(NULL_ID, nullptr); // Replace with null entity.
+        sig.resetAll();
+        _entities[id] = entity(NULL_ID, nullptr);
+        _idManager.destroyEntity(id);
+
     }
 
     template<typename T>
@@ -90,13 +91,12 @@ public:
     // Applies to entites that only have the specified component signature.
     template<typename ...Ts, typename Func>
     void forEachEntityWith(Func&& func) {
-        auto* firstSet = getFirstSet<Ts...>();
-        if(!firstSet) { return; };
+        auto* smallestSet = getSmallestSet<Ts...>();
+        if(!smallestSet) { return; };
 
-        for(std::size_t i = 0; i < firstSet->size(); i++){
-            entityid id = firstSet->getEntityId(i);
-
-            if(hasComponents<Ts...>(id)){ // If the Entity has all the required components.
+        for(const auto& entry : smallestSet->data()) {
+            entityid id = entry.id;
+            if(hasComponents<Ts...>(id)) {
                 func(id, getComponent<Ts>(id)...);
             }
         }
@@ -115,8 +115,14 @@ private:
     }
 
     template<typename ...Ts>
-    std::size_t getSmallestSetSize() {
-        return std::min({getSetSize<Ts>()...});
+    auto* getSmallestSet() {
+        sparseSetInterface* smallest = nullptr;
+        std::size_t minSize = std::numeric_limits<std::size_t>::max();
+        
+        ((getSet<Ts>()->size() < minSize ? 
+            (minSize = getSet<Ts>()->size(), smallest = getSet<Ts>()) : nullptr), ...);
+        
+        return smallest;
     }
 
     // Set for index methods

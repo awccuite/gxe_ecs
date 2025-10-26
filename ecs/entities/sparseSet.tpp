@@ -6,33 +6,25 @@ namespace gxe {
 #include <cassert>
 
 template<typename T>
-sparseSet<T>::sparseSet() {
-    sparse.resize(INITIAL_SPARSE_SET_CAPACITY, NULL_ID);
-}
-
-template<typename T>
 void sparseSet<T>::insert(const entityid id, const T& component){
     if(id >= sparse.size()){ // Resize to the id and then some.
         sparse.resize(id + INITIAL_SPARSE_SET_CAPACITY, NULL_ID);
     }
 
     if(sparse[id] != NULL_ID){ // Overwrite if already exists.
-        dense[sparse[id]].component = component;
+        dense[sparse[id]].component = std::forward<T>(component);
+        return;
     }
 
-    std::size_t denseIndex = static_cast<std::size_t>(dense.size());
-
-    entry e{id, component};
-    dense.push_back(e);
-
-    sparse[id] = denseIndex;
+    dense.emplace_back(id, std::forward<T>(component));
+    sparse[id] = dense.size() - 1;
 }
 
 // Remove an entity from the sparse set. This does not free the ID though.
 template<typename T>
 void sparseSet<T>::remove(const entityid id){
     if(id >= sparse.size() || sparse[id] == NULL_ID){
-        return; // DNE in set
+        return;
     }
 
     std::size_t denseIndex = sparse[id];
@@ -40,6 +32,7 @@ void sparseSet<T>::remove(const entityid id){
 
     if(denseIndex != lastIndex){
         std::swap(dense[denseIndex], dense[lastIndex]);
+        sparse[dense[denseIndex].id] = denseIndex; // Update the sparse index of the swapped elements.
     }
 
     dense.pop_back();
