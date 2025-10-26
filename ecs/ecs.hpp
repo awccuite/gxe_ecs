@@ -20,18 +20,17 @@ namespace gxe {
 
 class ecs {
 public:
-    // We don't need to register components as they live in the tuple and are created at compile time.    
     ecs() = default;
     ~ecs() = default;
 
     entity& createEntity(){ // Create the entity within the _entities vector.
         entityid id = _idManager.createEntity();
 
-        if(id >= _entities.size()){ // Reserve extra space.
-            _entities.reserve(id + INITIAL_SPARSE_SET_CAPACITY);
+        if(id >= _entities.size()){ // Resize the vector and fill with null entities.
+            _entities.resize(id + INITIAL_SPARSE_SET_CAPACITY, entity(NULL_ID, nullptr));
         }
-
-        _entities.emplace(_entities.begin() + id, entity(id, this)); // Construct new entity in place.
+        
+        _entities[id] = entity(id, this); 
         return _entities[id];
     }
 
@@ -44,13 +43,18 @@ public:
     }
 
     template<typename T>
-    void addComponent(entityid id, const T& component) {
+    entity& addComponent(entityid id, const T& component) { // Return entity& for chaining
         getSet<T>()->insert(id, component);
+
+        // Need to update the signature for the component.
+
+        return _entities[id];
     }
 
     template<typename T>
-    void removeComponent(entityid id) {
+    entity& removeComponent(entityid id) { // Return entity& for chaining
         getSet<T>()->remove(id);
+        return _entities[id];
     }
 
     template<typename T>

@@ -1,5 +1,4 @@
 #include <cstdint>
-#include <iostream>
 
 #include "idManager.hpp"
 #include "../components.hpp"

@@ -20,7 +20,7 @@ void sparseSet<T>::insert(const entityid id, const T& component){
         dense[sparse[id]].component = component;
     }
 
-    size_t denseIndex = static_cast<size_t>(dense.size());
+    std::size_t denseIndex = static_cast<std::size_t>(dense.size());
 
     entry e{id, component};
     dense.push_back(e);
@@ -35,8 +35,8 @@ void sparseSet<T>::remove(const entityid id){
         return; // DNE in set
     }
 
-    size_t denseIndex = sparse[id];
-    size_t lastIndex = dense.size() - 1;
+    std::size_t denseIndex = sparse[id];
+    std::size_t lastIndex = dense.size() - 1;
 
     if(denseIndex != lastIndex){
         std::swap(dense[denseIndex], dense[lastIndex]);
@@ -66,17 +66,17 @@ const bool sparseSet<T>::has(const entityid id) const {
 }
 
 template<typename T>
-const entityid sparseSet<T>::getEntityId(const size_t index) const {
+const entityid sparseSet<T>::getEntityId(const std::size_t index) const {
     return dense[index].id;
 }
 
 template<typename T>
-T& sparseSet<T>::getByIndex(const size_t index){
+T& sparseSet<T>::getByIndex(const std::size_t index){
     return dense[index].component;
 }
 
 template<typename T>
-size_t sparseSet<T>::size() const {
+std::size_t sparseSet<T>::size() const {
     return dense.size();
 }
 

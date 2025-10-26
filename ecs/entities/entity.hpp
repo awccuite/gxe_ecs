@@ -1,7 +1,6 @@
 #pragma once
 
 #include "../components.hpp"
-#include <bitset>
 
 namespace gxe {
 

@@ -2,6 +2,8 @@
 
 #include "../components.hpp"
 
+#include <vector>
+
 namespace gxe {
 
 class idManager {

@@ -1,10 +1,10 @@
 #pragma once
 
 #include <cstdint>
-#include <vector>
 #include <bitset>
 #include <limits>
 #include <tuple>
+#include <initializer_list>
 
 namespace gxe {
 
@@ -19,10 +19,10 @@ enum class ComponentType {
     velocity,
     sprite,
     physics,
-    count
+    count // Final placeholder for num components
 };
 
-constexpr std::size_t n_components = static_cast<std::size_t>(ComponentType::count);
+constexpr inline std::size_t n_components = static_cast<std::size_t>(ComponentType::count);
 
 // Position and rotation
 struct transform {
@@ -58,7 +58,44 @@ struct ToSparseSets<std::tuple<Ts...>> {
 
 using components = ToSparseSets<selectedComponents>::type;
 
-struct componentSignature {
+class componentSignature {
+public:
+    componentSignature() = default;
+
+    componentSignature(std::initializer_list<ComponentType> types) {
+        for (auto t : types) set(t);
+    }
+
+    void set(ComponentType t) { _bitset.set(static_cast<std::size_t>(t)); }
+    void reset(ComponentType t) { _bitset.reset(static_cast<std::size_t>(t)); }
+    bool test(ComponentType t) const { return _bitset.test(static_cast<std::size_t>(t)); }
+
+    void setAll() { _bitset.set(); }
+    void resetAll() { _bitset.reset(); }
+
+    bool containsAll(const componentSignature& other) const {
+        return ((_bitset & other._bitset) == other._bitset);
+    }
+
+    bool intersects(const componentSignature& other) const {
+        return (_bitset & other._bitset).any();
+    }
+
+    componentSignature operator|(const componentSignature& other) const {
+        componentSignature r; r._bitset = _bitset | other._bitset; return r;
+    }
+
+    componentSignature operator&(const componentSignature& other) const {
+        componentSignature r; r._bitset = _bitset & other._bitset; return r;
+    }
+
+    bool operator==(const componentSignature& other) const { return _bitset == other._bitset; }
+    bool operator!=(const componentSignature& other) const { return !(*this == other); }
+
+    std::size_t count() const { return _bitset.count(); }
+    const std::bitset<n_components>& bits() const { return _bitset; }
+
+private:
     std::bitset<n_components> _bitset;
 };
 
