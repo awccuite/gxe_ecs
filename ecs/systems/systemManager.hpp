@@ -18,9 +18,11 @@ class systemManger {
 public:
     void update();
 
+    void addSystem(system);
+
 private:
-    coreSystems _coreSystems; // Core systems that require no overhead
-    std::vector<std::unique_ptr<System>> _dynamicSystems; // Systems that are added and configured at runtime.
+    // coreSystems _coreSystems; // Core systems compiled into the systemManager
+    std::vector<std::unique_ptr<system>> _dynamicSystems; // Systems that are added and configured at runtime.
 
 };
 

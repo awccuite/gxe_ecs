@@ -106,21 +106,4 @@ concept IsComponent = requires {
     { ComponentID<T>::value } -> std::convertible_to<ComponentType>;
 };
 
-// Get component name as string (useful for debugging)
-constexpr const char* componentName(ComponentType type) {
-    switch(type) {
-        case ComponentType::Transform: return "Transform";
-        case ComponentType::Velocity: return "Velocity";
-        case ComponentType::Sprite: return "Sprite";
-        case ComponentType::Physics: return "Physics";
-        case ComponentType::Count: return "Count";
-        default: return "Unknown";
-    }
-}
-
-template<typename T>
-constexpr const char* componentName() {
-    return componentName(ComponentID<T>::value);
-}
-
 } // Namespace gxe

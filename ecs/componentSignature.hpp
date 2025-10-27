@@ -54,26 +54,6 @@ public:
         return (_bitset & other._bitset).any();
     }
 
-    // componentSignature operator|(const componentSignature& other) const {
-    //     componentSignature r; 
-    //     r._bitset = _bitset | other._bitset; 
-    //     return r;
-    // }
-
-    // componentSignature operator&(const componentSignature& other) const {
-    //     componentSignature r; 
-    //     r._bitset = _bitset & other._bitset; 
-    //     return r;
-    // }
-
-    // bool operator==(const componentSignature& other) const { 
-    //     return _bitset == other._bitset; 
-    // }
-    
-    // bool operator!=(const componentSignature& other) const { 
-    //     return !(*this == other); 
-    // }
-
     // Utility methods
     std::size_t count() const { return _bitset.count(); }
     const std::bitset<n_components>& bits() const { return _bitset; }
@@ -99,21 +79,6 @@ public:
             if(_bitset.test(i)) return i;
         }
         return n_components;
-    }
-
-    // String repr of active components
-    std::string toString() const {
-        std::string result = "Signature[";
-        bool first = true;
-        for(std::size_t i = 0; i < n_components; ++i) {
-            if(_bitset.test(i)) {
-                if(!first) result += ", ";
-                result += componentName(static_cast<ComponentType>(i));
-                first = false;
-            }
-        }
-        result += "]";
-        return result;
     }
 
     // Optimized iteration over set bits in a signature.
