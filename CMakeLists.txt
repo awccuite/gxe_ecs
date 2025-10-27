@@ -1,8 +1,11 @@
 cmake_minimum_required(VERSION 3.14)
 
 # Set compilers BEFORE project() command
+# Hack for my apple silicon mac.
+if(APPLE)
 set(CMAKE_CXX_COMPILER "/opt/homebrew/opt/llvm/bin/clang++")
 set(CMAKE_C_COMPILER "/opt/homebrew/opt/llvm/bin/clang")
+endif()
 
 project (gxe_ecs)
 
