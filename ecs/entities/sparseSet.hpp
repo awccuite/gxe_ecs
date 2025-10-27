@@ -2,7 +2,7 @@
 
 #include "../types.hpp"
 
-#include <functional>
+#include <vector>
 
 namespace gxe {
 

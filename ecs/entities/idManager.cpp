@@ -1,8 +1,6 @@
 #include <cstdint>
 
 #include "idManager.hpp"
-#include "../components.hpp"
-#include "sparseSet.hpp"
 
 namespace gxe {
 

@@ -1,6 +1,5 @@
 #pragma once
 
-#include "types.hpp"
 #include "entities/sparseSet.hpp"
 
 #include <tuple>
