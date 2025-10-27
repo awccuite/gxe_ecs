@@ -18,8 +18,6 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(SOURCE_FILES
     main.cpp
     ecs/ecs.hpp
-    ecs/components.hpp
-    ecs/componentSignature.hpp
 
     ecs/entities/idManager.hpp
     ecs/entities/idManager.cpp

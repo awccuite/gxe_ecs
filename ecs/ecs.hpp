@@ -14,58 +14,46 @@
 
 namespace gxe {
 
+template<typename ...Components>
 class ecs {
+// ECS templating logic, FUN :D
+    static constexpr size_t N_COMPONENTS = sizeof...(Components);
+    using ComponentSets = std::tuple<sparseSet<Components>...>;
+
 public:
     ecs() {
         _entities.reserve(INITIAL_SPARSE_SET_CAPACITY);
     };
     ~ecs() = default;
 
-    entity& createEntity() {
+    entity<Components...>& createEntity() {
         entityid id = _idManager.createEntity();
+        std::cout << "Created entity " << static_cast<uint32_t>(id) << std::endl;
 
         if(id >= _entities.size()) {
-            _entities.resize(id + INITIAL_SPARSE_SET_CAPACITY, entity(NULL_ID, nullptr));
+            _entities.resize(id + INITIAL_SPARSE_SET_CAPACITY, entity<Components...>(NULL_ID, nullptr));
         }
         
-        _entities[id] = entity(id, this); 
+        _entities[id] = entity<Components...>(id, this); 
         return _entities[id];
     }
 
-    void destroyEntity(entityid id) {
-        auto& sig = _entities[id].signature();
-
-        removeAllComponents(id);
-
-        sig.resetAll();
-        _entities[id] = entity(NULL_ID, nullptr);
-        _idManager.destroyEntity(id);
-    }
-
     template<typename T>
-    entity& addComponent(entityid id, const T& component) {
+    entity<Components...>& addComponent(entityid id, const T& component) {
         static_assert(IsComponent<T>, "T must be a registered component type");
         
         getSet<T>()->insert(id, component);
-        _entities[id].signature().set<T>();
 
         return _entities[id];
     }
 
     template<typename T>
-    entity& removeComponent(entityid id) {
+    entity<Components...>& removeComponent(entityid id) {
         static_assert(IsComponent<T>, "T must be a registered component type");
         
         getSet<T>()->remove(id);
-        _entities[id].signature().reset<T>();
 
         return _entities[id];
-    }
-
-    template<typename T>
-    T& getComponent(entityid id) {
-        static_assert(IsComponent<T>, "T must be a registered component type");
-        return getSet<T>()->get(id);
     }
 
     template<typename T>
@@ -83,13 +71,13 @@ public:
     template<typename T>
     sparseSet<T>* getSet() {
         static_assert(IsComponent<T>, "T must be a registered component type");
-        return &std::get<sparseSet<T>>(_activeComponents);
+        return &std::get<sparseSet<T>>(_componentSets);
     }
 
     template<typename T>
     const sparseSet<T>* getSet() const {
         static_assert(IsComponent<T>, "T must be a registered component type");
-        return &std::get<sparseSet<T>>(_activeComponents);
+        return &std::get<sparseSet<T>>(_componentSets);
     }
 
     // Iterate over each entity with the specified components
@@ -118,61 +106,30 @@ public:
 
 private:
     template<typename T>
+    static constexpr bool IsComponent = (std::is_same_v<T, Components> || ...);
+
+    template<typename T>
     std::size_t getSetSize() const {
         auto* set = getSet<T>();
         return set ? set->size() : 0;
     }
 
-    // Get index of smallest set among Ts...
-    template<typename ...Ts>
-    std::size_t getSmallestSetIndex() const {
-        std::array<std::size_t, sizeof...(Ts)> sizes = { getSet<Ts>()->size()... };
-        return static_cast<std::size_t>(
-            std::distance(sizes.begin(), std::min_element(sizes.begin(), sizes.end()))
-        );
-    }
-
-    template<typename ...Ts, std::size_t... Is>
-    auto* getSmallestSetImpl(std::size_t idx, std::index_sequence<Is...>) {
-        using ret_type = std::common_type_t<sparseSet<Ts>*...>;
-        ret_type result = nullptr;
-        ((idx == Is ? result = getSet<std::tuple_element_t<Is, std::tuple<Ts...>>>(), 0 : 0), ...);
-        return result;
-    }
-
-    template<typename ...Ts>
+    template<typename First, typename ...Rest>
     auto* getSmallestSet() {
-        constexpr std::size_t N = sizeof...(Ts);
-        std::size_t idx = getSmallestSetIndex<Ts...>();
-        return getSmallestSetImpl<Ts...>(idx, std::make_index_sequence<N>{});
+        if constexpr (sizeof...(Rest) == 0) {
+            return getSet<First>();
+        } else {
+            auto* firstSet = getSet<First>();
+            auto* restSmallest = getSmallestSet<Rest...>();
+            
+            return (firstSet->size() <= restSmallest->size()) ? firstSet : restSmallest;
+        }
     }
 
-    // Component removal helpers
-    template<std::size_t... Is>
-    static void removeIfSet(entityid id, ComponentType type, ecs* self, std::index_sequence<Is...>) {
-        ([&] {
-            if (type == static_cast<ComponentType>(Is)) {
-                self->getSet<ComponentAt<Is>>()->remove(id);
-            }
-        }(), ...);
-    }
-
-    void removeAllComponents(entityid id) {
-        auto const& sig = _entities[id].signature();
-        if(sig.empty()) return;
-        
-        sig.forEachSet([&](ComponentType type) {
-            removeIfSet(id, type, this, std::make_index_sequence<n_components>{});
-        });
-    }
-
-    std::vector<entity> _entities; // Vector of entities by indexed by their ID.
+    std::vector<entity<Components...>> _entities; // Vector of entities by indexed by their ID.
     idManager _idManager; // Manages ID assignment at creation and deletion of objects.
-    components _activeComponents; // Sparse set component collection. access via std::get<sparseSet<T>*>(_activeComponents)
 
-    systemManger _systemManager; // Manages execution of systems.
+    ComponentSets _componentSets;
 };
 
 } // namespace gxe
-
-#include "entities/entity.tpp" // Template implementations for Entit, this avoids circular dependencies.
