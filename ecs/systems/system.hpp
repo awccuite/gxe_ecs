@@ -14,20 +14,20 @@ namespace gxe {
 
 class ecs; // Forward declare ecs
 
-template<typename T> // Concept that requires a system to implement a "tick" method.
+template<typename T> // Concept that requires a system to implement void tick(evs& e);
 concept Tickable = requires(T t, ecs& e){
     { t.tick(e) } -> std::same_as<void>;
 };
     
 // CRTP style system interface using C++23 "Deducing This"
-class System {
+class system {
 public: 
-    explicit System(ecs& ecs, float tickrate = 60.0f) :
+    explicit system(ecs& ecs, float tickrate = 60.0f) :
         _tickrate(tickrate),
         _tickInterval(1.0f / tickrate),
         _accumulator(0) {};
 
-    virtual ~System() = default;
+    virtual ~system() = default;
 
     template<typename Self>
         requires Tickable<Self>

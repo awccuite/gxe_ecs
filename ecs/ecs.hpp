@@ -9,6 +9,9 @@
 
 // Sparse set ECS implementation.
 
+// TODO:
+// REWORK ecs to handle templated constructor ecs ecs<...components>();
+
 namespace gxe {
 
 class ecs {
@@ -106,13 +109,6 @@ public:
                 }
                 func(entry.id, getComponent<Ts>(entry.id)...);
             }
-        }
-    }
-
-    void printEntitySignature(entityid id) const {
-        if(id < _entities.size() && _entities[id].id() != NULL_ID) {
-            std::cout << "Entity " << id << ": " 
-                      << _entities[id].signature().toString() << std::endl;
         }
     }
 
