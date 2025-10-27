@@ -1,16 +1,14 @@
 #pragma once
 
-#include <cstddef>
-#include <tuple>
+#include "types.hpp"
+#include "entities/sparseSet.hpp"
 
+#include <tuple>
 #include <cstdint>
 #include <limits>
 #include <tuple>
 
 namespace gxe {
-
-using entityid = uint32_t;
-constexpr inline entityid NULL_ID = std::numeric_limits<entityid>::max();
 
 enum class ComponentType : std::size_t {
     Transform = 0,
@@ -40,21 +38,16 @@ struct physics {
     float mass;
 };
 
-using selectedComponents = std::tuple<transform, velocity, sprite, physics>;
-
 // Template logic for compile time resolution of component sparse sets.
 template<typename T>
 class sparseSet; // Forward declaration of sparseSet
 
-template<typename Tuple>
-struct ToSparseSets;
-
-template<typename ...Ts>
-struct ToSparseSets<std::tuple<Ts...>> {
-    using type = std::tuple<sparseSet<Ts>...>;
-};
-
-using components = ToSparseSets<selectedComponents>::type; // gives std::tuple<sparseSet<components>, ...>
+using components = std::tuple<
+    sparseSet<transform>,
+    sparseSet<velocity>,
+    sparseSet<sprite>,
+    sparseSet<physics>
+>;
 
 template<typename T> 
 struct ComponentID {
@@ -93,9 +86,7 @@ inline constexpr std::size_t n_components = static_cast<std::size_t>(ComponentTy
 
 // Enum -> Component mapping.
 template<ComponentType Type>
-struct ComponentFromEnum {
-    // Primary template - specialized below
-};
+struct ComponentFromEnum;
 
 template<> struct ComponentFromEnum<ComponentType::Transform> { using type = transform; };
 template<> struct ComponentFromEnum<ComponentType::Velocity> { using type = velocity; };

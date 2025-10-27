@@ -1,9 +1,7 @@
 #include "sparseSet.hpp"
+#include <cassert>
 
 namespace gxe {
-
-#include <cstddef>
-#include <cassert>
 
 template<typename T>
 void sparseSet<T>::insert(const entityid id, const T& component){

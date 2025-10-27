@@ -1,12 +1,10 @@
 #pragma once
 
-#include "idManager.hpp"
-#include <cstddef>
+#include "../types.hpp"
+
 #include <functional>
 
 namespace gxe {
-
-constexpr std::size_t INITIAL_SPARSE_SET_CAPACITY = 1024;
 
 // Type erased sparse set interface for ECS
 class sparseSetInterface {

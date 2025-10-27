@@ -2,6 +2,7 @@
 #include <raylib.h>
 
 #include "ecs/ecs.hpp"
+#include "ecs/systems/system.hpp"
 
 const int SCREEN_WIDTH = 800;
 const int SCREEN_HEIGHT = 600;

@@ -16,13 +16,17 @@ set(SOURCE_FILES
     main.cpp
     ecs/ecs.hpp
     ecs/components.hpp
+    ecs/componentSignature.hpp
 
     ecs/entities/idManager.hpp
     ecs/entities/idManager.cpp
     ecs/entities/sparseSet.hpp
+    ecs/entities/sparseSet.tpp
     ecs/entities/entity.hpp
 
-    ecs/systems/systems.hpp
+    ecs/systems/system.hpp
+    ecs/systems/coreSystems.hpp
+    ecs/systems/systemManager.hpp
 )
 
 find_package(raylib REQUIRED)

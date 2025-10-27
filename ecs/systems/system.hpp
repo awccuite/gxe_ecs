@@ -19,7 +19,7 @@ concept Tickable = requires(T t, ecs& e){
     { t.tick(e) } -> std::same_as<void>;
 };
     
-// CRTP style system class using C++23 "Deducing This"
+// CRTP style system interface using C++23 "Deducing This"
 class System {
 public: 
     explicit System(ecs& ecs, float tickrate = 60.0f) :
@@ -27,7 +27,7 @@ public:
         _tickInterval(1.0f / tickrate),
         _accumulator(0) {};
 
-    ~System() = default;
+    virtual ~System() = default;
 
     template<typename Self>
         requires Tickable<Self>
@@ -40,7 +40,8 @@ public:
         }
     }
 
-    virtual void tick(ecs& ecs) = 0; // Tick method to be overridden in subclasses.
+    // Implement system logic within tick. Called at _tickInterval.
+    virtual void tick(ecs& ecs) = 0; 
 
     float tickrate() const { return _tickrate; }
     float tickInterval() const { return _tickInterval; }

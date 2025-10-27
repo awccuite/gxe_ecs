@@ -3,9 +3,8 @@
 #include "entities/sparseSet.hpp"
 #include "entities/entity.hpp" // Inlucde method signatures for Entity.
 
-#include "systems/systems.hpp"
+#include "systems/systemManager.hpp"
 
-#include <cstddef>
 #include <iostream>
 
 // Sparse set ECS implementation.
@@ -174,6 +173,8 @@ private:
     std::vector<entity> _entities; // Vector of entities by indexed by their ID.
     idManager _idManager; // Manages ID assignment at creation and deletion of objects.
     components _activeComponents; // Sparse set component collection. access via std::get<sparseSet<T>*>(_activeComponents)
+
+    systemManger _systemManager; // Manages execution of systems.
 };
 
 } // namespace gxe
