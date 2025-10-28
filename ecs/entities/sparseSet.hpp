@@ -12,6 +12,9 @@ public:
     virtual ~sparseSetInterface() = default;
     virtual void clear() = 0;
     virtual std::size_t size() const = 0;
+
+    virtual void* rawData() = 0;
+    virtual std::size_t entrySize() const = 0;
 };
 
 template<typename T>
@@ -51,6 +54,15 @@ public:
             __builtin_prefetch(&dense[sparse[id]], 0, 1);
         }
     };
+
+    void* rawData() override {
+        return dense.data();
+    }
+
+    // Retun byte size of entry for set instance.
+    std::size_t entrySize() const override {
+        return sizeof(entry);
+    }
 
 private:
     // void rebalance(); // TODO: Rebalance the sparse set dense array.

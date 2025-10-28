@@ -73,9 +73,16 @@ public:
     // Free in the idManager.
     void destroyEntity(entityid id){
         unsigned long long bits = _signatures[id].to_ullong();
+
+#ifdef DEBUG_ENTITY_DESTRUCTION
+        std::cout << "Destroying component at bits: ";
+#endif
         
         while (bits) {
             int bitPos = __builtin_ctzll(bits);
+#ifdef DEBUG_ENTITY_DESTRUCTION
+            std::cout << bitPos << " ";
+#endif
             removeComponentAtIndex(id, bitPos);
             bits &= (bits - 1);
         }
@@ -83,6 +90,10 @@ public:
         _signatures[id].reset();
         _entities[id] = entity<Components...>(NULL_ID, nullptr);
         _idManager.destroyEntity(id);
+
+#ifdef DEBUG_ENTITY_DESTRUCTION
+        std::cout << ", destroyed entity" << std::endl;
+#endif
     }
 
     template<typename T>
@@ -107,6 +118,12 @@ public:
         std::cout << "Removed component, new bitset " << _signatures[id] << std::endl;
 #endif
         return _entities[id];
+    }
+
+    template<typename T>
+    T& getComponent(entityid id) {
+        static_assert(IsComponent<T>, "T must be a registered component type");
+        return getSet<T>()->get(id);
     }
 
     template<typename T>
@@ -135,22 +152,30 @@ public:
     }
 
     // Iterate over each entity with the specified components
+    // Applies func to all components that match signatures
+    // in the ecs, as such, func must be able to 
+    // handle each component as an argument.
     template<typename ...Ts, typename Func>
     void forEachEntityWith(Func&& func) {
         static_assert((IsComponent<Ts> && ...), "All types must be registered components");
         
-        auto* smallestSet = getSmallestSet<Ts...>();
+        sparseSetInterface* smallestSet = getSmallestSet<Ts...>();
         if(!smallestSet) return;
 
-        auto cmp = createSignatureFromComponents<Ts...>();
-        constexpr bool enablePrefetch = sizeof...(Ts) > 2;
-        for(auto& entry : smallestSet->data()) {
-            if((_signatures[entry.id] & cmp) == cmp) { 
-                if constexpr(enablePrefetch) {
-                    (getSet<Ts>()->prefetch(entry.id), ...);
-                }
-                func(entry.id, getComponent<Ts>(entry.id)...);
+        std::bitset<N_COMPONENTS> cmp = createSignatureFromComponents<Ts...>();
+
+        char* data = static_cast<char*>(smallestSet->rawData()); // Non-typed pointer to raw data memory.
+        size_t count = smallestSet->size();
+        size_t stride = smallestSet->entrySize();
+
+        for(size_t i = 0; i < count; i++){
+            entityid id = *reinterpret_cast<entityid*>(data); // Cast first 32 bits from data to id
+
+            if((_signatures[id] & cmp) == cmp) {
+                func(id, getComponent<Ts>(id)...);
             }
+
+            data += stride;
         }
     }
 
@@ -181,12 +206,12 @@ private:
     }
 
     template<typename First, typename ...Rest>
-    auto* getSmallestSet() {
+    sparseSetInterface* getSmallestSet() {
         if constexpr (sizeof...(Rest) == 0) {
             return getSet<First>();
         } else {
-            auto* firstSet = getSet<First>();
-            auto* restSmallest = getSmallestSet<Rest...>();
+            sparseSetInterface* firstSet = getSet<First>();
+            sparseSetInterface* restSmallest = getSmallestSet<Rest...>();
             
             return (firstSet->size() <= restSmallest->size()) ? firstSet : restSmallest;
         }
