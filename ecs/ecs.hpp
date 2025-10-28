@@ -25,8 +25,10 @@ template<typename ...Components>
 class ecs {
 // ECS templating logic, FUN :D
     static constexpr size_t N_COMPONENTS = sizeof...(Components);
-    using ComponentSets = std::tuple<sparseSet<Components>...>;
-    using Signatures = std::vector<std::bitset<N_COMPONENTS>>;
+    using componentSets = std::tuple<sparseSet<Components>...>;
+
+    using signature = std::bitset<N_COMPONENTS>;
+    using signatures = std::vector<signature>;
 
     template<typename T, typename First, typename ...Rest>
     static constexpr size_t componentIndexHelper(){
@@ -63,7 +65,13 @@ public:
         return _entities[id];
     }
 
-    // Needs to update the signature bit of the component type. Determined by the ...Components passed into the ECS.
+    // Iterate over the set bits in the entity signature, 
+    // remove from the set, then set the index to null.
+    // Free in the idManager.
+    void destroyEntity(entityid id){
+
+    }
+
     template<typename T>
     entity<Components...>& addComponent(entityid id, const T& component) {
         static_assert(IsComponent<T>, "T must be a registered component type");
@@ -76,7 +84,6 @@ public:
         return _entities[id];
     }
 
-    // Needs to update the signature bit of the component type. Determined by the ...Components passed into the ECS.
     template<typename T>
     entity<Components...>& removeComponent(entityid id) {
         static_assert(IsComponent<T>, "T must be a registered component type");
@@ -161,16 +168,16 @@ private:
     }
     
     template<typename ...Ts>
-    static constexpr std::bitset<N_COMPONENTS> createSignatureFromComponents(){
-        std::bitset<N_COMPONENTS> bits;
+    static constexpr signature createSignatureFromComponents(){
+        signature bits;
         (bits.set(indexOf<Ts>), ...);
         return bits;
     }
 
     std::vector<entity<Components...>> _entities;
     idManager _idManager;
-    ComponentSets _componentSets;
-    Signatures _signatures;
+    componentSets _componentSets;
+    signatures _signatures;
 };
 
 } // namespace gxe

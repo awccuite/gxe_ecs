@@ -47,9 +47,6 @@ public:
         return _ecs->template hasComponents<Ts...>(_id);
     }
 
-    // componentSignature& signature() { return _signature; };
-    // const componentSignature& signature() const { return _signature; }; // Const overload
-
 private:
     friend class ecs<Components...>;
     entity(entityid id, ecs<Components...>* ecsInstance) : _id(id), _ecs(ecsInstance) {};
