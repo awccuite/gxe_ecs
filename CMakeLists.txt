@@ -34,5 +34,7 @@ find_package(raylib REQUIRED)
 
 add_executable(gxe_ecs ${SOURCE_FILES})
 
+target_compile_definitions(gxe_ecs PRIVATE DEBUG_SIGNATURES=1)
+
 target_include_directories(gxe_ecs PRIVATE ${CMAKE_SOURCE_DIR})
 target_link_libraries(gxe_ecs PRIVATE raylib)

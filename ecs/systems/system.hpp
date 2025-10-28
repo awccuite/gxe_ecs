@@ -21,6 +21,7 @@ concept Tickable = requires(T t, ecs<Components...>& e){
 };
     
 // CRTP style system interface using C++23 "Deducing This"
+// Systems iterate over their set of components, using the forEachEnityWith<components> for efficient iteration via ECS.
 template<typename ...Components>
 class system {
 public: 
@@ -38,6 +39,7 @@ public:
         
         while(self._accumulator >= self._tickInterval) { // While we've accumulated more delta time than the tick period.
             self.tick(ecs);  // Calls derived class method directly (no vtable)
+            // TODO: This will need to be updated to tick on components that match the signature, so systems implementations dont worry about the ecs for each.
             self._accumulator -= self._tickInterval; // Decr by tick interval.
         }
     }

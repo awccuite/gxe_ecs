@@ -32,6 +32,9 @@ int main() {
         ClearBackground(RAYWHITE);
 
         // Lets create a simple system that draws over the transform components.
+        ecs.forEachEntityWith<transform>([](auto& id, auto& transform){
+            DrawCircle(transform.x, transform.y, 5, RED);
+        });
 
         EndDrawing();
     }

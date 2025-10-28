@@ -18,12 +18,14 @@ public:
 
     entityid id() const { return _id; }
 
+    // Add component to entity.
     template<typename T>
     entity<Components...>& addComponent(const T& component) {
-        _ecs->template addComponent(_id, component);
+        _ecs->template addComponent<T>(_id, component);
         return *this;
     }
 
+    // Remove component of type t from entity (if it exists)
     template<typename T>
     entity<Components...>& removeComponent() {
         _ecs->template removeComponent<T>(_id);

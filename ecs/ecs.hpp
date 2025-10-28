@@ -6,11 +6,18 @@
 #include "systems/systemManager.hpp"
 
 #include <iostream>
+#include <bitset>
 
 // Sparse set ECS implementation.
 
 // TODO:
-// REWORK ecs to handle templated constructor ecs ecs<...components>();
+// Current issue, to destroy an entity, we need to iterate over the entire collection of sets
+// we have, and check if the entity is a member. Instead, we want to know which sets
+// an entity is a member of, to efficiently remove it from all the relevant sets.
+// This also lets us query what components an entity has.
+
+// Idea, create std::vector<signature> where size == numEntities. This way, we can instantiate the bitmask size via N_COMPONENTS, and
+// have all the signatures live in the ecs root so there are no shenanigans.
 
 namespace gxe {
 
@@ -19,10 +26,27 @@ class ecs {
 // ECS templating logic, FUN :D
     static constexpr size_t N_COMPONENTS = sizeof...(Components);
     using ComponentSets = std::tuple<sparseSet<Components>...>;
+    using Signatures = std::vector<std::bitset<N_COMPONENTS>>;
+
+    template<typename T, typename First, typename ...Rest>
+    static constexpr size_t componentIndexHelper(){
+        if constexpr (std::is_same_v<T, First>){
+            return 0;
+        } else if constexpr (sizeof...(Rest) > 0) {
+            return 1 + componentIndexHelper<T, Rest...>();
+        } else {
+            static_assert(sizeof(T) == 0, "Type T not found in Components");
+            return 0; // Unreachable, but needed for compilation
+        }
+    }
+
+    template<typename T>
+    static constexpr size_t indexOf = componentIndexHelper<T, Components...>();
 
 public:
     ecs() {
         _entities.reserve(INITIAL_SPARSE_SET_CAPACITY);
+        _signatures.reserve(INITIAL_SPARSE_SET_CAPACITY);
     };
     ~ecs() = default;
 
@@ -32,27 +56,36 @@ public:
 
         if(id >= _entities.size()) {
             _entities.resize(id + INITIAL_SPARSE_SET_CAPACITY, entity<Components...>(NULL_ID, nullptr));
+            _signatures.resize(id + INITIAL_SPARSE_SET_CAPACITY);
         }
         
-        _entities[id] = entity<Components...>(id, this); 
+        _entities[id] = entity<Components...>(id, this);
         return _entities[id];
     }
 
+    // Needs to update the signature bit of the component type. Determined by the ...Components passed into the ECS.
     template<typename T>
     entity<Components...>& addComponent(entityid id, const T& component) {
         static_assert(IsComponent<T>, "T must be a registered component type");
         
         getSet<T>()->insert(id, component);
-
+        _signatures[id].set(indexOf<T>);
+#ifdef DEBUG_SIGNATURES
+        std::cout << "Added component, new bitset " << _signatures[id] << std::endl;
+#endif
         return _entities[id];
     }
 
+    // Needs to update the signature bit of the component type. Determined by the ...Components passed into the ECS.
     template<typename T>
     entity<Components...>& removeComponent(entityid id) {
         static_assert(IsComponent<T>, "T must be a registered component type");
         
         getSet<T>()->remove(id);
-
+        _signatures[id].reset(indexOf<T>);
+#ifdef DEBUG_SIGNATURES
+        std::cout << "Removed component, new bitset " << _signatures[id] << std::endl;
+#endif
         return _entities[id];
     }
 
@@ -63,9 +96,10 @@ public:
     }
 
     template<typename ...Ts>
-    bool hasComponents(entityid id) {
+    inline bool hasComponents(entityid id) const {
         static_assert((IsComponent<Ts> && ...), "All types must be registered components");
-        return (getSet<Ts>()->has(id) && ...);
+        auto cmp = createSignatureFromComponents<Ts...>();
+        return ((cmp & _signatures[id]) == cmp);
     }
 
     template<typename T>
@@ -88,10 +122,10 @@ public:
         auto* smallestSet = getSmallestSet<Ts...>();
         if(!smallestSet) return;
 
-        // Prefetch components for better cache performance
+        auto cmp = createSignatureFromComponents<Ts...>();
         constexpr bool enablePrefetch = sizeof...(Ts) > 2;
         for(auto& entry : smallestSet->data()) {
-            if(hasComponents<Ts...>(entry.id)) {
+            if((_signatures[entry.id] & cmp) == cmp) { 
                 if constexpr(enablePrefetch) {
                     (getSet<Ts>()->prefetch(entry.id), ...);
                 }
@@ -125,11 +159,18 @@ private:
             return (firstSet->size() <= restSmallest->size()) ? firstSet : restSmallest;
         }
     }
+    
+    template<typename ...Ts>
+    static constexpr std::bitset<N_COMPONENTS> createSignatureFromComponents(){
+        std::bitset<N_COMPONENTS> bits;
+        (bits.set(indexOf<Ts>), ...);
+        return bits;
+    }
 
-    std::vector<entity<Components...>> _entities; // Vector of entities by indexed by their ID.
-    idManager _idManager; // Manages ID assignment at creation and deletion of objects.
-
+    std::vector<entity<Components...>> _entities;
+    idManager _idManager;
     ComponentSets _componentSets;
+    Signatures _signatures;
 };
 
 } // namespace gxe
