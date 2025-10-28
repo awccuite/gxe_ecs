@@ -46,7 +46,7 @@ int main() {
         // Lets create a simple system that draws over the transform components.
         ecs.forEachEntityWith<transform, lifetime>([deltaT, &ecs](auto& id, auto& transform, auto& lifetime){
             DrawCircle(transform.x, transform.y, 5, RED);
-            transform.y += 0.05f;
+            // transform.y += 0.05f;
             lifetime.ttl -= deltaT;
             if(lifetime.ttl <= 0) { ecs.destroyEntity(id); };
         });

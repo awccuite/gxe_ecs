@@ -57,7 +57,6 @@ public:
 
     entity<Components...>& createEntity() {
         entityid id = _idManager.createEntity();
-        std::cout << "Created entity " << static_cast<uint32_t>(id) << std::endl;
 
         if(id >= _entities.size()) {
             _entities.resize(id + INITIAL_SPARSE_SET_CAPACITY, entity<Components...>(NULL_ID, nullptr));
@@ -74,13 +73,13 @@ public:
     void destroyEntity(entityid id){
         unsigned long long bits = _signatures[id].to_ullong();
 
-#ifdef DEBUG_ENTITY_DESTRUCTION
+#if DEBUG_ENTITY_DESTRUCTION
         std::cout << "Destroying component at bits: ";
 #endif
         
         while (bits) {
             int bitPos = __builtin_ctzll(bits);
-#ifdef DEBUG_ENTITY_DESTRUCTION
+#if DEBUG_ENTITY_DESTRUCTION
             std::cout << bitPos << " ";
 #endif
             removeComponentAtIndex(id, bitPos);
@@ -91,8 +90,8 @@ public:
         _entities[id] = entity<Components...>(NULL_ID, nullptr);
         _idManager.destroyEntity(id);
 
-#ifdef DEBUG_ENTITY_DESTRUCTION
-        std::cout << ", destroyed entity" << std::endl;
+#if DEBUG_ENTITY_DESTRUCTION
+        std::cout << "\n";
 #endif
     }
 
@@ -102,7 +101,7 @@ public:
         
         getSet<T>()->insert(id, component);
         _signatures[id].set(indexOf<T>);
-#ifdef DEBUG_SIGNATURES
+#if DEBUG_SIGNATURES
         std::cout << "Added component, new bitset " << _signatures[id] << std::endl;
 #endif
         return _entities[id];
@@ -114,7 +113,7 @@ public:
         
         getSet<T>()->remove(id);
         _signatures[id].reset(indexOf<T>);
-#ifdef DEBUG_SIGNATURES
+#if DEBUG_SIGNATURES
         std::cout << "Removed component, new bitset " << _signatures[id] << std::endl;
 #endif
         return _entities[id];
