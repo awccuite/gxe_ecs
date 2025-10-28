@@ -169,6 +169,7 @@ public:
 
         for(size_t i = 0; i < count; i++){
             entityid id = *reinterpret_cast<entityid*>(data); // Cast first 32 bits from data to id
+            // TODO: Reimplement prefetch for sets.
 
             if((_signatures[id] & cmp) == cmp) {
                 func(id, getComponent<Ts>(id)...);
