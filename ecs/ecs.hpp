@@ -73,9 +73,16 @@ public:
     // Free in the idManager.
     void destroyEntity(entityid id){
         unsigned long long bits = _signatures[id].to_ullong();
+
+#ifdef DEBUG_ENTITY_DESTRUCTION
+        std::cout << "Destroying component at bits: ";
+#endif
         
         while (bits) {
             int bitPos = __builtin_ctzll(bits);
+#ifdef DEBUG_ENTITY_DESTRUCTION
+            std::cout << bitPos << " ";
+#endif
             removeComponentAtIndex(id, bitPos);
             bits &= (bits - 1);
         }
@@ -83,6 +90,10 @@ public:
         _signatures[id].reset();
         _entities[id] = entity<Components...>(NULL_ID, nullptr);
         _idManager.destroyEntity(id);
+
+#ifdef DEBUG_ENTITY_DESTRUCTION
+        std::cout << ", destroyed entity" << std::endl;
+#endif
     }
 
     template<typename T>
@@ -148,17 +159,17 @@ public:
     void forEachEntityWith(Func&& func) {
         static_assert((IsComponent<Ts> && ...), "All types must be registered components");
         
-        auto* smallestSet = getSmallestSet<Ts...>();
+        sparseSetInterface* smallestSet = getSmallestSet<Ts...>();
         if(!smallestSet) return;
 
-        auto cmp = createSignatureFromComponents<Ts...>();
+        std::bitset<N_COMPONENTS> cmp = createSignatureFromComponents<Ts...>();
 
         char* data = static_cast<char*>(smallestSet->rawData()); // Non-typed pointer to raw data memory.
         size_t count = smallestSet->size();
         size_t stride = smallestSet->entrySize();
 
         for(size_t i = 0; i < count; i++){
-            entityid id = *reinterpret_cast<entityid*>(data); // Cast first 32 bits from data to 
+            entityid id = *reinterpret_cast<entityid*>(data); // Cast first 32 bits from data to id
 
             if((_signatures[id] & cmp) == cmp) {
                 func(id, getComponent<Ts>(id)...);
