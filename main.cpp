@@ -16,24 +16,31 @@ struct pos {
     float y;
 };
 
+struct physics {
+    float mass;
+};
+
 int main() {
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "CPU Render");
 
     int currentFps = 60;
-    gxe::ecs<transform, pos> ecs; // Construct a default ecs.
+    gxe::ecs<transform, pos, physics> ecs; // Construct a default ecs.
 
     while(!WindowShouldClose()){
-        if(IsMouseButtonPressed(MOUSE_LEFT_BUTTON)){ // Spawn an entity.
+        if(IsMouseButtonDown(MOUSE_LEFT_BUTTON)){ // Spawn an entity.
             Vector2 pos = GetMousePosition();
-            ecs.createEntity().addComponent<transform>({pos.x, pos.y});
+            ecs.createEntity()
+                .addComponent<transform>({pos.x, pos.y})
+                .addComponent<physics>({50.0f});
         }
 
         BeginDrawing();
         ClearBackground(RAYWHITE);
 
         // Lets create a simple system that draws over the transform components.
-        ecs.forEachEntityWith<transform>([](auto& id, auto& transform){
+        ecs.forEachEntityWith<transform, physics>([](auto& id, auto& transform, auto& physics){
             DrawCircle(transform.x, transform.y, 5, RED);
+            transform.y += 0.05f;
         });
 
         EndDrawing();
