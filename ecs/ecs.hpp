@@ -23,7 +23,6 @@ namespace gxe {
 
 template<typename ...Components>
 class ecs {
-// ECS templating logic, FUN :D
     static constexpr size_t N_COMPONENTS = sizeof...(Components);
     using componentSets = std::tuple<sparseSet<Components>...>;
 
@@ -38,12 +37,16 @@ class ecs {
             return 1 + componentIndexHelper<T, Rest...>();
         } else {
             static_assert(sizeof(T) == 0, "Type T not found in Components");
-            return 0; // Unreachable, but needed for compilation
+            return 0;
         }
     }
 
     template<typename T>
     static constexpr size_t indexOf = componentIndexHelper<T, Components...>();
+
+    // Type lookup by index
+    template<size_t Index>
+    using ComponentAt = std::tuple_element_t<Index, std::tuple<Components...>>;
 
 public:
     ecs() {
@@ -69,7 +72,17 @@ public:
     // remove from the set, then set the index to null.
     // Free in the idManager.
     void destroyEntity(entityid id){
-
+        unsigned long long bits = _signatures[id].to_ullong();
+        
+        while (bits) {
+            int bitPos = __builtin_ctzll(bits);
+            removeComponentAtIndex(id, bitPos);
+            bits &= (bits - 1);
+        }
+        
+        _signatures[id].reset();
+        _entities[id] = entity<Components...>(NULL_ID, nullptr);
+        _idManager.destroyEntity(id);
     }
 
     template<typename T>
@@ -148,6 +161,18 @@ public:
 private:
     template<typename T>
     static constexpr bool IsComponent = (std::is_same_v<T, Components> || ...);
+
+    // Remove component by runtime index using compile-time dispatch
+    template<size_t Index = 0> // Pass in index as a templated argument for our ComponentAt function.
+    void removeComponentAtIndex(entityid id, size_t targetIndex) {
+        if constexpr (Index < N_COMPONENTS) {
+            if (Index == targetIndex) {
+                getSet<ComponentAt<Index>>()->remove(id);
+            } else {
+                removeComponentAtIndex<Index + 1>(id, targetIndex);
+            }
+        }
+    }
 
     template<typename T>
     std::size_t getSetSize() const {
