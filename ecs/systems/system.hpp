@@ -12,17 +12,20 @@
 
 namespace gxe {
 
+template<typename ...Components>
 class ecs; // Forward declare ecs
 
-template<typename T> // Concept that requires a system to implement void tick(evs& e);
-concept Tickable = requires(T t, ecs& e){
+template<typename T, typename ...Components> // Concept that requires a system to implement void tick(evs& e);
+concept Tickable = requires(T t, ecs<Components...>& e){
     { t.tick(e) } -> std::same_as<void>;
 };
     
 // CRTP style system interface using C++23 "Deducing This"
+// Systems iterate over their set of components, using the forEachEnityWith<components> for efficient iteration via ECS.
+template<typename ...Components>
 class system {
 public: 
-    explicit system(ecs& ecs, float tickrate = 60.0f) :
+    explicit system(ecs<Components...>& ecs, float tickrate = 60.0f) :
         _tickrate(tickrate),
         _tickInterval(1.0f / tickrate),
         _accumulator(0) {};
@@ -30,18 +33,19 @@ public:
     virtual ~system() = default;
 
     template<typename Self>
-        requires Tickable<Self>
-    void update(this Self&& self, float deltaTime, ecs& ecs) {
+        requires Tickable<Self, Components...>
+    void update(this Self&& self, float deltaTime, ecs<Components...>& ecs) {
         self._accumulator += deltaTime;
         
         while(self._accumulator >= self._tickInterval) { // While we've accumulated more delta time than the tick period.
             self.tick(ecs);  // Calls derived class method directly (no vtable)
+            // TODO: This will need to be updated to tick on components that match the signature, so systems implementations dont worry about the ecs for each.
             self._accumulator -= self._tickInterval; // Decr by tick interval.
         }
     }
 
     // Implement system logic within tick. Called at _tickInterval.
-    virtual void tick(ecs& ecs) = 0; 
+    virtual void tick(ecs<Components...>& ecs) = 0; 
 
     float tickrate() const { return _tickrate; }
     float tickInterval() const { return _tickInterval; }

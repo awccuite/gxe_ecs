@@ -1,14 +1,11 @@
 #pragma once
 
-#include "../componentSignature.hpp"
-
 namespace gxe {
 
+template<typename ...Components>
 class ecs; // Forward declare ecs
 
-// Entities need a signature associated with them, that
-// lets us check what components they have. A signature is a bitset.
-
+template<typename ...Components>
 class entity {
 public:
     // Copy constructors
@@ -21,31 +18,41 @@ public:
 
     entityid id() const { return _id; }
 
+    // Add component to entity.
     template<typename T>
-    entity& addComponent(const T& component);
+    entity<Components...>& addComponent(const T& component) {
+        _ecs->template addComponent<T>(_id, component);
+        return *this;
+    }
+
+    // Remove component of type t from entity (if it exists)
+    template<typename T>
+    entity<Components...>& removeComponent() {
+        _ecs->template removeComponent<T>(_id);
+        return *this;
+    }
 
     template<typename T>
-    entity& removeComponent();
+    T& getComponent() {
+        return _ecs->template getComponent<T>(_id);
+    }
 
     template<typename T>
-    T& getComponent();
-
-    template<typename T>
-    const T& getComponent() const;
+    const T& getComponent() const {
+        return _ecs->template getComponent<T>(_id);
+    }
 
     template<typename ...Ts>
-    bool hasComponents() const;
-
-    componentSignature& signature() { return _signature; };
-    const componentSignature& signature() const { return _signature; }; // Const overload
+    bool hasComponents() const {
+        return _ecs->template hasComponents<Ts...>(_id);
+    }
 
 private:
-    friend class ecs;
-    entity(entityid id, ecs* ecsInstance) : _id(id), _ecs(ecsInstance) {};
+    friend class ecs<Components...>;
+    entity(entityid id, ecs<Components...>* ecsInstance) : _id(id), _ecs(ecsInstance) {};
 
     entityid _id;
-    ecs* _ecs;
-    componentSignature _signature;
+    ecs<Components...>* _ecs; // Pointer to ecs
 };
 
 } // namespace gxe

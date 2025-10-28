@@ -1,8 +1,11 @@
 cmake_minimum_required(VERSION 3.14)
 
 # Set compilers BEFORE project() command
+# Hack for my apple silicon mac.
+if(APPLE)
 set(CMAKE_CXX_COMPILER "/opt/homebrew/opt/llvm/bin/clang++")
 set(CMAKE_C_COMPILER "/opt/homebrew/opt/llvm/bin/clang")
+endif()
 
 project (gxe_ecs)
 
@@ -15,8 +18,6 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(SOURCE_FILES
     main.cpp
     ecs/ecs.hpp
-    ecs/components.hpp
-    ecs/componentSignature.hpp
 
     ecs/entities/idManager.hpp
     ecs/entities/idManager.cpp
@@ -32,6 +33,8 @@ set(SOURCE_FILES
 find_package(raylib REQUIRED)
 
 add_executable(gxe_ecs ${SOURCE_FILES})
+
+target_compile_definitions(gxe_ecs PRIVATE DEBUG_SIGNATURES=1)
 
 target_include_directories(gxe_ecs PRIVATE ${CMAKE_SOURCE_DIR})
 target_link_libraries(gxe_ecs PRIVATE raylib)

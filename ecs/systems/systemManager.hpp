@@ -16,13 +16,13 @@ namespace gxe {
 // easily flexible, dynamically removed and added at runtime.
 class systemManger {
 public:
-    void update();
+    // void update();
 
-    void addSystem(system);
+    // void addSystem(system);
 
 private:
     // coreSystems _coreSystems; // Core systems compiled into the systemManager
-    std::vector<std::unique_ptr<system>> _dynamicSystems; // Systems that are added and configured at runtime.
+    // std::vector<std::unique_ptr<system>> _dynamicSystems; // Systems that are added and configured at runtime.
 
 };
 
