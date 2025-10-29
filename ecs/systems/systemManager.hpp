@@ -1,28 +1,22 @@
 #pragma once
 
-#include "coreSystems.hpp"
-#include "ecs/systems/system.hpp"
 #include <memory>
-
 #include <vector>
+
+#include "system.hpp"
 
 namespace gxe {
 
-// Provide an update function that runs the systems.
-// There are two types of systems, "core", and "runtime".
-// Core systems are systems which we compile as part 
-// of our system manager class, while runtime systems
-// are those that can be defined by a user and are
-// easily flexible, dynamically removed and added at runtime.
-class systemManger {
+class systemManager {
+
 public:
     // void update();
 
-    // void addSystem(system);
+    // template<typename System>
+    // void addSystem(); // Templated addSystem method.
 
 private:
-    // coreSystems _coreSystems; // Core systems compiled into the systemManager
-    // std::vector<std::unique_ptr<system>> _dynamicSystems; // Systems that are added and configured at runtime.
+    std::vector<std::unique_ptr<systemInterface>> _systems;
 
 };
 

@@ -26,7 +26,6 @@ set(SOURCE_FILES
     ecs/entities/entity.hpp
 
     ecs/systems/system.hpp
-    ecs/systems/coreSystems.hpp
     ecs/systems/systemManager.hpp
 )
 

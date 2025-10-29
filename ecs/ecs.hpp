@@ -2,22 +2,11 @@
 #include "entities/idManager.hpp"
 #include "entities/sparseSet.hpp"
 #include "entities/entity.hpp" // Inlucde method signatures for Entity.
-
 #include "systems/systemManager.hpp"
 
-#include <iostream>
 #include <bitset>
 
 // Sparse set ECS implementation.
-
-// TODO:
-// Current issue, to destroy an entity, we need to iterate over the entire collection of sets
-// we have, and check if the entity is a member. Instead, we want to know which sets
-// an entity is a member of, to efficiently remove it from all the relevant sets.
-// This also lets us query what components an entity has.
-
-// Idea, create std::vector<signature> where size == numEntities. This way, we can instantiate the bitmask size via N_COMPONENTS, and
-// have all the signatures live in the ecs root so there are no shenanigans.
 
 namespace gxe {
 
@@ -223,11 +212,15 @@ private:
         (bits.set(indexOf<Ts>), ...);
         return bits;
     }
-
+    
+    // Entity management
     std::vector<entity<Components...>> _entities;
     idManager _idManager;
     componentSets _componentSets;
     signatures _signatures;
+
+    // System management
+    systemManager _systemManager;
 };
 
 } // namespace gxe
