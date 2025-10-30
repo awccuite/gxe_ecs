@@ -5,6 +5,11 @@ namespace gxe {
 template<typename ...Components>
 class ecs; // Forward declare ecs
 
+// TODO: Expand to support archetypes.
+// An archetype has a signature (like our entities)
+// and maintains its own packed array of components for the
+// entities that match its signature.
+
 template<typename ...Components>
 class entity {
 public:

@@ -24,9 +24,6 @@ set(SOURCE_FILES
     ecs/entities/sparseSet.hpp
     ecs/entities/sparseSet.tpp
     ecs/entities/entity.hpp
-
-    ecs/systems/system.hpp
-    ecs/systems/systemManager.hpp
 )
 
 find_package(raylib REQUIRED)

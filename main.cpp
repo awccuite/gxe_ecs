@@ -43,7 +43,6 @@ int main() {
         BeginDrawing();
         ClearBackground(RAYWHITE);
 
-        // Lets create a simple system that draws over the transform components.
         ecs.forEachEntityWith<transform, lifetime>([deltaT, &ecs](auto& id, auto& transform, auto& lifetime){
             DrawCircle(transform.x, transform.y, 5, RED);
             // transform.y += 0.05f;
