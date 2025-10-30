@@ -215,6 +215,8 @@ private:
     // Entity management
     std::vector<entity<Components...>> _entities;
     idManager _idManager;
+
+    // Replace these with _compiledArchetypes and _dynamicArchetypes
     componentSets _componentSets;
     signatures _signatures;
 };
