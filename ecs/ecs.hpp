@@ -2,7 +2,6 @@
 #include "entities/idManager.hpp"
 #include "entities/sparseSet.hpp"
 #include "entities/entity.hpp" // Inlucde method signatures for Entity.
-#include "systems/systemManager.hpp"
 
 #include <bitset>
 
@@ -218,9 +217,6 @@ private:
     idManager _idManager;
     componentSets _componentSets;
     signatures _signatures;
-
-    // System management
-    systemManager _systemManager;
 };
 
 } // namespace gxe

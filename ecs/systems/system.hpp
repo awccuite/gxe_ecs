@@ -28,7 +28,7 @@ concept Tickable = requires(T t, ecs<Components...>& e){
     { t.tick(e) } -> std::same_as<void>;
 };
     
-// CRTP style system interface using C++23 "Deducing This"
+// Static system interface using C++23 "Deducing This"
 // Systems iterate over their set of components, using the forEachEnityWith<components> for efficient iteration via ECS.
 template<typename ...Components>
 class system : public systemInterface {
