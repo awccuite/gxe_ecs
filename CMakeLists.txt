@@ -17,6 +17,8 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 set(SOURCE_FILES
     main.cpp
+    
+    ecs/types.hpp
     ecs/ecs.hpp
 
     ecs/entities/idManager.hpp
@@ -24,6 +26,8 @@ set(SOURCE_FILES
     ecs/entities/sparseSet.hpp
     ecs/entities/sparseSet.tpp
     ecs/entities/entity.hpp
+
+    ecs/archetype.hpp
 )
 
 find_package(raylib REQUIRED)

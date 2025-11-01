@@ -2,6 +2,8 @@
 
 #include <cstdint>
 #include <limits>
+#include <bitset>
+#include <vector>
 
 // Archetypes are templated with the components they are defined by.
 
@@ -28,7 +30,7 @@ public:
 
 private:
     std::bitset<N_COMPONENTS> _signature; // Archetypes have a signature
-    std::tuple<std::vector<Components>...> _components; // Tuple of our components for this archetype
+    std::tuple<std::vector<AComponents>...> _components; // Tuple of our components for this archetype
 };
 
 } // namespace gxe
