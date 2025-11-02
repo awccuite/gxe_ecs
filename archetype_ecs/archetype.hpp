@@ -117,7 +117,7 @@ public:
         return _entityIds[archId];
     }
 
-    // Iterate over all entities in archetype
+    // Iterate over all entities in archetype (all components)
     template<typename Func>
     void forEach(Func&& func) {
         size_t count = _entityIds.size();
@@ -126,6 +126,18 @@ public:
             std::apply([&](auto&... vecs) {
                 func(id, vecs[i]...);
             }, _components);
+        }
+    }
+
+    // Iterate over all entities with specific components only
+    template<typename... RequestedComponents, typename Func>
+    void forEachWith(Func&& func) {
+        static_assert(sizeof...(RequestedComponents) > 0, "Must request at least one component");
+        
+        size_t count = _entityIds.size();
+        for (size_t i = 0; i < count; ++i) {
+            entityid id = _entityIds[i];
+            func(id, std::get<std::vector<RequestedComponents>>(_components)[i]...);
         }
     }
 

@@ -114,6 +114,13 @@ public:
         arch.forEach(std::forward<Func>(func));
     }
 
+    // Iterate over entities with only specific components
+    template<typename Archetype, typename... RequestedComponents, typename Func>
+    void forEachWith(Func&& func) {
+        auto& arch = std::get<Archetype>(_archetypes);
+        arch.template forEachWith<RequestedComponents...>(std::forward<Func>(func));
+    }
+
     // Get archetype instance
     template<typename Archetype>
     Archetype& getArchetype() {
