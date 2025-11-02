@@ -7,7 +7,7 @@ namespace gxe {
 const uint32_t INITIAL_ENTITY_LIMIT = INITIAL_SPARSE_SET_CAPACITY; // Set an initial entity limit of 1024 entities.
 const entityid INITIIAL_ENTITY_ID = 0;
 
-idManager::idManager(){
+idManager::idManager() : _numEntities(0) {
     allocateEntities(INITIIAL_ENTITY_ID);
 }
 

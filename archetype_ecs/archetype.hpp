@@ -132,7 +132,7 @@ public:
     // Iterate over all entities with specific components only
     template<typename... RequestedComponents, typename Func>
     void forEachWith(Func&& func) {
-        static_assert(sizeof...(RequestedComponents) > 0, "Must request at least one component");
+        static_assert(sizeof...(RequestedComponents) >= 0, "Must request at least one component");
         
         size_t count = _entityIds.size();
         for (size_t i = 0; i < count; ++i) {

@@ -121,6 +121,10 @@ public:
         arch.template forEachWith<RequestedComponents...>(std::forward<Func>(func));
     }
 
+    // Idea, foreachwith that operates only on components,
+    // and then for each archetype that contains said component, run forEach.
+    // Map of components -> vector<archetypes>
+
     // Get archetype instance
     template<typename Archetype>
     Archetype& getArchetype() {
@@ -165,6 +169,12 @@ private:
     idManager _idManager;
     std::vector<EntityRecord> _entityRecords;  // Global entity ID -> archetype location
     std::tuple<Archetypes...> _archetypes;     // All archetype instances
+
+    // Need a map generated at compile time from
+    // each component type, to all the registered archetypes.
+    // Step 1, unpack all component types, then add the
+    // archetype to each of the component maps it
+    // was a member of.
 };
 
 } // namespace gxe

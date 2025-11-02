@@ -6,8 +6,8 @@
 #include <raylib.h>
 #include <cstdlib>
 
-const int SCREEN_WIDTH = 800;
-const int SCREEN_HEIGHT = 600;
+const int SCREEN_WIDTH = 1200;
+const int SCREEN_HEIGHT = 800;
 
 // Example component types
 struct Position {
@@ -30,13 +30,13 @@ int main() {
     using namespace gxe;
     
     // Define archetypes
-    using MovingEntity = archetype<Position, Velocity>;
+    // using MovingEntity = archetype<Position, Velocity>;
     using StaticEntity = archetype<Position>;
-    using Damageable = archetype<Position, Health>;
-    using PhysicsEntity = archetype<Position, Mass, Velocity>;
+    // using Damageable = archetype<Position, Health>;
+    // using PhysicsEntity = archetype<Position, Mass, Velocity>;
     
     // Create ECS with these archetypes
-    ecs<MovingEntity, StaticEntity, Damageable, PhysicsEntity> ecs;
+    ecs<StaticEntity> ecs;
     
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "CPU Render");
 
@@ -47,6 +47,9 @@ int main() {
     int frameIndex = 0;
     int totalFrames = 0;
 
+    // TODO: Generate point cloud, run real time convex hull
+    // calculation on points.
+
     while(!WindowShouldClose()){
         auto frameStart = std::chrono::high_resolution_clock::now();
         
@@ -56,26 +59,26 @@ int main() {
         auto spawnStart = std::chrono::high_resolution_clock::now();
         if(IsMouseButtonDown(MOUSE_LEFT_BUTTON)){ // Spawn an entity.
             Vector2 mPos = GetMousePosition();
-            ecs.createEntity<PhysicsEntity>(
-                Position{mPos.x, mPos.y},
-                Mass{50.0},
-                Velocity{5, 15}
+            ecs.createEntity<StaticEntity>(
+                Position{mPos.x, mPos.y}
             );
         }
+
+        if(IsKeyDown(KEY_R)){
+            ecs.forEachWith<StaticEntity>([&ecs](entityid id){
+                ecs.destroyEntity(id);
+            });
+        }
+
         auto spawnEnd = std::chrono::high_resolution_clock::now();
         double currentSpawnTime = std::chrono::duration<double, std::micro>(spawnEnd - spawnStart).count();
 
         BeginDrawing();
         ClearBackground(RAYWHITE);
 
-        // ForEach timing
         auto forEachStart = std::chrono::high_resolution_clock::now();
-        ecs.forEachWith<PhysicsEntity, Position, Velocity>([&ecs, dt](entityid id, Position& pos, Velocity& vel){
+        ecs.forEachWith<StaticEntity, Position>([&ecs, dt](entityid id, Position& pos){
             DrawCircle(pos.x, pos.y, 5, RED);
-            pos.y += vel.dy * dt;
-            if(pos.y > GetScreenHeight() || pos.y < 0 || pos.x < 0 || pos.x > GetScreenWidth()){
-                ecs.destroyEntity(id);
-            }
         });
         auto forEachEnd = std::chrono::high_resolution_clock::now();
         double currentForEachTime = std::chrono::duration<double, std::micro>(forEachEnd - forEachStart).count();
