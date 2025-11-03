@@ -1,7 +1,11 @@
 #include "archetype_ecs/ecs.hpp"
+#include "archetype_ecs/types.hpp"
+#include "archetype_ecs/system.hpp"
+
 #include <chrono>
 #include <array>
 #include <algorithm>
+#include <random>
 
 #include <raylib.h>
 #include <cstdlib>
@@ -29,14 +33,10 @@ struct Mass {
 int main() {
     using namespace gxe;
     
-    // Define archetypes
-    // using MovingEntity = archetype<Position, Velocity>;
     using StaticEntity = archetype<Position>;
-    // using Damageable = archetype<Position, Health>;
-    // using PhysicsEntity = archetype<Position, Mass, Velocity>;
-    
-    // Create ECS with these archetypes
+
     ecs<StaticEntity> ecs;
+    System tickable;
     
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "CPU Render");
 
@@ -47,8 +47,7 @@ int main() {
     int frameIndex = 0;
     int totalFrames = 0;
 
-    // TODO: Generate point cloud, run real time convex hull
-    // calculation on points.
+    std::srand(std::time({}));
 
     while(!WindowShouldClose()){
         auto frameStart = std::chrono::high_resolution_clock::now();
@@ -70,6 +69,23 @@ int main() {
             });
         }
 
+        if(IsKeyDown(KEY_G)){
+            for(uint32_t i = 0; i < 100; i++){
+                int x_pos = std::rand() % SCREEN_WIDTH;
+                int y_pos = std::rand() % SCREEN_HEIGHT;
+                ecs.createEntity<StaticEntity>(
+                    Position{static_cast<float>(x_pos), static_cast<float>(y_pos)}
+                );
+            }
+        }
+
+        // Calculate voronoi diagram over static entites
+        // Create a voronoi system, calculate diagram (per frame, investigate offloading generation to thread)
+        // On generation complete, we can then draw the generated diagram over our points.
+        if(IsKeyDown(KEY_V)){
+
+        }
+
         auto spawnEnd = std::chrono::high_resolution_clock::now();
         double currentSpawnTime = std::chrono::duration<double, std::micro>(spawnEnd - spawnStart).count();
 
@@ -78,7 +94,7 @@ int main() {
 
         auto forEachStart = std::chrono::high_resolution_clock::now();
         ecs.forEachWith<StaticEntity, Position>([&ecs, dt](entityid id, Position& pos){
-            DrawCircle(pos.x, pos.y, 5, RED);
+            DrawCircle(pos.x, pos.y, 2, RED);
         });
         auto forEachEnd = std::chrono::high_resolution_clock::now();
         double currentForEachTime = std::chrono::duration<double, std::micro>(forEachEnd - forEachStart).count();

@@ -23,6 +23,7 @@ set(SOURCE_FILES
     archetype_ecs/idManager.hpp
     archetype_ecs/idManager.cpp
     archetype_ecs/archetype.hpp
+    archetype_ecs/system.hpp
 )
 
 find_package(raylib REQUIRED)

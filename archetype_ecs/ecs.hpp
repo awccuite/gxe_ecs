@@ -1,6 +1,7 @@
 #pragma once
 
 #include "archetype.hpp"
+#include "archetype_ecs/types.hpp"
 #include "idManager.hpp"
 #include <tuple>
 #include <vector>
@@ -47,7 +48,7 @@ class ecs {
 
 public:
     ecs() {
-        _entityRecords.reserve(1024);
+        _entityRecords.reserve(INITIAL_SPARSE_SET_CAPACITY);
     }
     
     ~ecs() = default;
@@ -63,7 +64,7 @@ public:
         
         // Ensure entity records vector is large enough
         if (id >= _entityRecords.size()) {
-            _entityRecords.resize(id + 1024);
+            _entityRecords.resize(id + INITIAL_SPARSE_SET_CAPACITY);
         }
         
         // Add entity to the archetype
