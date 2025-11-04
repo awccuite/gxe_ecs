@@ -1,6 +1,7 @@
 #pragma once
 
 #include <iostream>
+#include <functional>
 
 // Systems can be created to update at some frequency T,
 // or triggered manually.
@@ -34,9 +35,17 @@ public:
     System(uint32_t tickrate) : SystemBase(tickrate) {};
     ~System() = default;
 
+    // Set tick to some function F.
+    template<typename F>
+    void tickDef(const F&& lambda){ 
+        _tickImpl = lambda;
+    }
+
 private:
     friend class SystemBase;
     void tick() {
-        std::cout << "Ticked!\n";
+        _tickImpl();
     }
+
+    std::function<void()> _tickImpl;
 };

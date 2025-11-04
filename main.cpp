@@ -36,7 +36,10 @@ int main() {
     using StaticEntity = archetype<Position>;
 
     ecs<StaticEntity> ecs;
-    System tickable;
+    System tickable(1.0f); // System that ticks once per second.
+    tickable.tickDef([](){
+        std::cout << "Tick!\n";
+    });
     
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "CPU Render");
 
@@ -53,6 +56,7 @@ int main() {
         auto frameStart = std::chrono::high_resolution_clock::now();
         
         float dt = GetFrameTime();
+        tickable.update(dt);
 
         // Spawn timing
         auto spawnStart = std::chrono::high_resolution_clock::now();
