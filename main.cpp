@@ -37,13 +37,34 @@ int main() {
     using StaticEntity = archetype<Position>;
 
     ecs<StaticEntity> ecs;
-    System tickable(1.0f); // System that ticks once per second.
-    tickable.tickDef([](){
-        std::cout << "Tick!\n";
+    System mover(30.0f); // System that manages movement
+    mover.tickDef([&ecs](){
+        ecs.forEachWith<StaticEntity, Position>([&ecs](entityid& id, Position& pos){
+            pos.x += 1.0f;
+            pos.y += 1.0f;
+        });
+    });
+
+    System cleanup(5.0f);
+    cleanup.tickDef([&ecs](){
+        ecs.forEachWith<StaticEntity, Position>([&ecs](entityid& id, Position& pos){
+            if(pos.x < 0 || pos.x > SCREEN_WIDTH || pos.y < 0 || pos.y > SCREEN_HEIGHT){
+                ecs.destroyEntity(id);
+            }
+        });
     });
     
+    std::cout << "Created systems" << std::endl;
+
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "CPU Render");
 
+    RenderTexture circleTex = LoadRenderTexture(6, 6);
+    BeginTextureMode(circleTex);
+        DrawCircle(3, 3, 6.0f, RED);
+        DrawCircleLines(3, 3, 6.0f, BLACK);
+    EndTextureMode();
+    std::cout << "Created circle texture" << std::endl;
+    
     constexpr int FRAME_HISTORY = 100;
     std::array<double, FRAME_HISTORY> frameTimesUs{};
     std::array<double, FRAME_HISTORY> spawnTimesUs{};
@@ -51,13 +72,16 @@ int main() {
     int frameIndex = 0;
     int totalFrames = 0;
 
-    std::srand(std::time({}));
+    std::cout << "Init complete" << std::endl;
 
+    std::srand(std::time({}));
     while(!WindowShouldClose()){
         auto frameStart = std::chrono::high_resolution_clock::now();
-        
         float dt = GetFrameTime();
-        tickable.update(dt);
+
+        // Want a system manager class.
+        mover.update(dt);
+        cleanup.update(dt); 
 
         // Spawn timing
         auto spawnStart = std::chrono::high_resolution_clock::now();
@@ -94,12 +118,17 @@ int main() {
         auto spawnEnd = std::chrono::high_resolution_clock::now();
         double currentSpawnTime = std::chrono::duration<double, std::micro>(spawnEnd - spawnStart).count();
 
+        // Render Logic
         BeginDrawing();
         ClearBackground(RAYWHITE);
 
         auto forEachStart = std::chrono::high_resolution_clock::now();
-        ecs.forEachWith<StaticEntity, Position>([&ecs, dt](entityid id, Position& pos){
-            DrawCircle(pos.x, pos.y, 2, RED);
+        ecs.forEachWith<StaticEntity, Position>([&ecs, &circleTex, dt](entityid id, Position& pos){
+            DrawTexture(circleTex.texture,
+                pos.x - circleTex.texture.width / 2.0f,
+                pos.y - circleTex.texture.height / 2.0f,
+                RED
+            );
         });
         auto forEachEnd = std::chrono::high_resolution_clock::now();
         double currentForEachTime = std::chrono::duration<double, std::micro>(forEachEnd - forEachStart).count();
