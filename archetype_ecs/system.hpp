@@ -1,7 +1,7 @@
 #pragma once
 
-#include <iostream>
 #include <functional>
+#include <optional>
 
 // Systems can be created to update at some frequency T,
 // or triggered manually.
@@ -37,15 +37,19 @@ public:
 
     // Set tick to some function F.
     template<typename F>
-    void tickDef(const F&& lambda){ 
-        _tickImpl = lambda;
+    void tickDef(F&& lambda){ 
+        _tickImpl = std::function<void()>(std::forward<F>(lambda));
     }
 
 private:
     friend class SystemBase;
     void tick() {
-        _tickImpl();
+        if(_tickImpl){
+            (*_tickImpl)();
+        }
     }
 
-    std::function<void()> _tickImpl;
+    // Zero overhead for inherited systems,
+    // only exists when needed.
+    std::optional<std::function<void()>> _tickImpl;
 };
