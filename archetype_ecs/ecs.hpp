@@ -116,15 +116,12 @@ public:
     }
 
     // Iterate over entities with only specific components
+    // Archetype agnostic.
     template<typename Archetype, typename... RequestedComponents, typename Func>
     void forEachWith(Func&& func) {
         auto& arch = std::get<Archetype>(_archetypes);
         arch.template forEachWith<RequestedComponents...>(std::forward<Func>(func));
     }
-
-    // Idea, foreachwith that operates only on components,
-    // and then for each archetype that contains said component, run forEach.
-    // Map of components -> vector<archetypes>
 
     // Get archetype instance
     template<typename Archetype>
@@ -170,6 +167,7 @@ private:
     idManager _idManager;
     std::vector<EntityRecord> _entityRecords;  // Global entity ID -> archetype location
     std::tuple<Archetypes...> _archetypes;     // All archetype instances
+    // Need a way to go from component -> archetypes
 
     // Need a map generated at compile time from
     // each component type, to all the registered archetypes.

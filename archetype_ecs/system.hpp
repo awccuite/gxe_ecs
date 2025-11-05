@@ -6,6 +6,11 @@
 // Systems can be created to update at some frequency T,
 // or triggered manually.
 
+// Systems should be templated over the components they access, and should maintain
+// a pointer to the ECS.
+
+// Systems should be archetype agnostic, instead utilizing components.
+
 class SystemBase {
 public:
     SystemBase(uint32_t tickrate):
@@ -30,6 +35,7 @@ protected:
 };
 
 // CRTP system interface without virtual overhead
+template <typename ...C>
 class System : public SystemBase {
 public:
     System(uint32_t tickrate) : SystemBase(tickrate) {};
@@ -52,4 +58,5 @@ private:
     // Zero overhead for inherited systems,
     // only exists when needed.
     std::optional<std::function<void()>> _tickImpl;
+    std::tuple<C...> _components; // Need to resolve foreach using the components in this tuple.
 };

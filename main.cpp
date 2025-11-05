@@ -37,7 +37,7 @@ int main() {
     using StaticEntity = archetype<Position>;
 
     ecs<StaticEntity> ecs;
-    System mover(30.0f); // System that manages movement
+    System mover(30.0f); // System over positions
     mover.tickDef([&ecs](){
         ecs.forEachWith<StaticEntity, Position>([&ecs](entityid& id, Position& pos){
             pos.x += 1.0f;
@@ -53,17 +53,21 @@ int main() {
             }
         });
     });
+
+    // System voronoiCalculation(1.0);
+    // voronoiCalculation.tickDef([&ecs](){
+    //     ecs.forEachWith
+    // });
     
     std::cout << "Created systems" << std::endl;
 
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "CPU Render");
-
     RenderTexture circleTex = LoadRenderTexture(6, 6);
     BeginTextureMode(circleTex);
-        DrawCircle(3, 3, 6.0f, RED);
-        DrawCircleLines(3, 3, 6.0f, BLACK);
+        DrawCircle(3, 3, 3.0f, RED);
+        DrawCircleLines(3, 3, 3.0f, BLACK);
     EndTextureMode();
-    std::cout << "Created circle texture" << std::endl;
+    std::cout << "Initialized raylib" << std::endl;
     
     constexpr int FRAME_HISTORY = 100;
     std::array<double, FRAME_HISTORY> frameTimesUs{};
