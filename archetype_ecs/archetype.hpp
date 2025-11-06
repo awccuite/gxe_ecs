@@ -104,6 +104,16 @@ public:
         return _entityToArchetypeId.find(id) != _entityToArchetypeId.end();
     }
 
+    template<typename C>
+    static constexpr bool hasComponent(){
+        return (std::is_same_v<C, AComponents> || ...);
+    }
+
+    template<typename... C>
+    static constexpr bool hasComponents(){
+        return (hasComponent<C>() && ...);
+    }
+
     // Get archetypeID for entity
     archetypeid getArchetypeId(entityid id) const {
         auto it = _entityToArchetypeId.find(id);

@@ -117,10 +117,22 @@ public:
 
     // Iterate over entities with only specific components
     // Archetype agnostic.
-    template<typename Archetype, typename... RequestedComponents, typename Func>
+    // TODO: Evaluate if we need to pack the Components as well.
+    template<typename Archetype, typename... Components, typename Func>
     void forEachWith(Func&& func) {
         auto& arch = std::get<Archetype>(_archetypes);
-        arch.template forEachWith<RequestedComponents...>(std::forward<Func>(func));
+        arch.template forEachWith<Components...>(std::forward<Func>(func));
+    }
+
+    // For each archetype with the set of components,
+    // iterate over some sub-selection of the components
+    template<typename ...Components, typename Func>
+    void forEachWithComponents(Func&& func){
+        std::apply([&](auto&... archetypes) { // std::apply unpacks the _archetypes tuple and applies the lambda to it
+            ((archetypes.template hasComponents<Components...>() ? 
+                archetypes.template forEachWith<Components...>(std::forward<Func>(func)) : 
+                void()), ...);
+        }, _archetypes);
     }
 
     // Get archetype instance

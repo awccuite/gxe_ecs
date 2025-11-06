@@ -23,7 +23,7 @@ public:
         self._accumulatedTime += dt;
 
         while(self._accumulatedTime >= self._secsPerTick){
-            self.tick(); // Ducktyped tick() method invocation.
+            self.tick(self._secsPerTick); // Ducktyped tick() method invocation.
             self._accumulatedTime -= self._secsPerTick;
         }
     };
@@ -44,19 +44,25 @@ public:
     // Set tick to some function F.
     template<typename F>
     void tickDef(F&& lambda){ 
-        _tickImpl = std::function<void()>(std::forward<F>(lambda));
+        _tickImpl = [lambda = std::forward<F>(lambda)](float dt) mutable {
+            if constexpr (std::is_invocable_v<F, float>) {
+                lambda(dt);
+            } else {
+                lambda();
+            }
+        };
     }
 
 private:
     friend class SystemBase;
-    void tick() {
+    void tick(float sysDelta) {
         if(_tickImpl){
-            (*_tickImpl)();
+            (*_tickImpl)(sysDelta);
         }
     }
 
     // Zero overhead for inherited systems,
     // only exists when needed.
-    std::optional<std::function<void()>> _tickImpl;
-    std::tuple<C...> _components; // Need to resolve foreach using the components in this tuple.
+    std::optional<std::function<void(float)>> _tickImpl;
+    std::tuple<C...> _components;
 };
