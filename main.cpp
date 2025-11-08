@@ -82,14 +82,13 @@ int main() {
     SetTargetFPS(999);
 
     // Array of color_textures
-    std::array<RenderTexture, COLOR_COUNT> color_tex;
-    for(size_t i = 0; i < COLOR_COUNT; i++){
+    // std::array<RenderTexture, COLOR_COUNT> color_tex;
+    // for(size_t i = 0; i < COLOR_COUNT; i++){
         RenderTexture circleTex = LoadRenderTexture(6, 6);
         BeginTextureMode(circleTex);
-            DrawCircle(3, 3, 3.0f, colors[i]);
+            DrawCircle(3, 3, 3.0f, WHITE);
         EndTextureMode();
-        color_tex[i] = circleTex;
-    }
+    // }
 
     std::cout << "Initialized raylib" << std::endl;
     
@@ -116,8 +115,8 @@ int main() {
         auto spawnStart = std::chrono::high_resolution_clock::now();
         if(IsMouseButtonDown(MOUSE_LEFT_BUTTON)){ // Spawn an entity.
             Vector2 mPos = GetMousePosition();
-            float x_vel = ((std::rand() % 2000) / 50.0f) - 20.0f;
-            float y_vel = ((std::rand() % 2000) / 50.0f) - 20.0f;
+            float x_vel = ((std::rand() % 2000) / 20.0f) - 50.0f;
+            float y_vel = ((std::rand() % 2000) / 20.0f) - 50.0f;
             float lifetime = ((std::rand() % 100) / 50.0f) + 2.0f;
             size_t col_index ((std::rand() % 21));
 
@@ -162,10 +161,10 @@ int main() {
 
         // TODO: Replace with drawing system
         auto forEachStart = std::chrono::high_resolution_clock::now();
-        ecs.forEachWithComponents<Position, Lifetime, EColor>([&ecs, &color_tex, &colors, dt](entityid id, Position& pos, Lifetime& lt, EColor& ecol){
-            DrawTexture(color_tex[ecol.col].texture,
-                pos.x - color_tex[ecol.col].texture.width / 2.0f,
-                pos.y - color_tex[ecol.col].texture.height / 2.0f,
+        ecs.forEachWithComponents<Position, Lifetime, EColor>([&ecs, &circleTex, &colors, dt](entityid id, Position& pos, Lifetime& lt, EColor& ecol){
+            DrawTexture(circleTex.texture,
+                pos.x - circleTex.texture.width / 2.0f,
+                pos.y - circleTex.texture.height / 2.0f,
                 colors[ecol.col]
             );
 
