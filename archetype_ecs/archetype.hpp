@@ -32,8 +32,6 @@ public:
         _entityIds.push_back(id);
         _entityToArchetypeId[id] = archId;
         
-        // Add each component to its respective vector
-        size_t index = 0;
         std::apply([&](auto&... vecs) {
             (vecs.push_back(components), ...);
         }, _components);
@@ -147,7 +145,16 @@ public:
         size_t count = _entityIds.size();
         for (size_t i = 0; i < count; ++i) {
             entityid id = _entityIds[i];
-            func(id, std::get<std::vector<RequestedComponents>>(_components)[i]...);
+
+            if constexpr (std::is_invocable_v<Func, entityid, RequestedComponents&...>){
+                func(id, std::get<std::vector<RequestedComponents>>(_components)[i]...);
+            } else if constexpr (std::is_invocable_v<Func, RequestedComponents&...>){
+                func(std::get<std::vector<RequestedComponents>>(_components)[i]...);
+            } else {
+                static_assert(std::is_invocable_v<Func, entityid, RequestedComponents&...> ||
+                         std::is_invocable_v<Func, RequestedComponents&...>,
+                         "Lambda must accept (entityid, Components&...) or (Components&...)");
+            }
         }
     }
 
