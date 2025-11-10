@@ -70,7 +70,7 @@ int main() {
     System cleanup(20); // Run every frame.;
     cleanup.tickDef([&ecs](){
         ecs.forEachWithComponents<Position>([&ecs](entityid id, Position& pos){
-            if(pos.x < 0 || pos.x > SCREEN_WIDTH || pos.y < 0 || pos.y > SCREEN_HEIGHT){
+            if(pos.x < 0 || pos.x > GetScreenWidth() || pos.y < 0 || pos.y > GetScreenWidth()){
                 ecs.destroyEntity(id);
             }
         });
@@ -78,17 +78,15 @@ int main() {
     
     std::cout << "Created systems" << std::endl;
 
-    InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "CPU Render");
+    SetConfigFlags(FLAG_WINDOW_TOPMOST | FLAG_WINDOW_UNDECORATED);
+    InitWindow(GetScreenWidth(), GetScreenWidth(), "CPU Render");
     SetTargetFPS(999);
 
-    // Array of color_textures
-    // std::array<RenderTexture, COLOR_COUNT> color_tex;
-    // for(size_t i = 0; i < COLOR_COUNT; i++){
-        RenderTexture circleTex = LoadRenderTexture(6, 6);
-        BeginTextureMode(circleTex);
-            DrawCircle(3, 3, 3.0f, WHITE);
-        EndTextureMode();
-    // }
+    RenderTexture circleTex = LoadRenderTexture(6, 6);
+    BeginTextureMode(circleTex);
+        DrawCircle(3, 3, 3.0f, WHITE);
+    EndTextureMode();
+
 
     std::cout << "Initialized raylib" << std::endl;
     
@@ -130,8 +128,8 @@ int main() {
 
         if(IsKeyDown(KEY_G)){ // Spawn 100 per frame
             for(uint32_t i = 0; i < 100; i++){
-                int x_pos = std::rand() % SCREEN_WIDTH;
-                int y_pos = std::rand() % SCREEN_HEIGHT;
+                int x_pos = std::rand() % GetScreenWidth();
+                int y_pos = std::rand() % GetScreenHeight();
                 float x_vel = ((std::rand() % 2000) / 50.0f) - 20.0f;
                 float y_vel = ((std::rand() % 2000) / 50.0f) - 20.0f;
                 float lifetime = ((std::rand() % 100) / 50.0f) + 2.0f;

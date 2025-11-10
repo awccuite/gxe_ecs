@@ -171,7 +171,7 @@ public:
     }
 
 private:
-    std::vector<entityid> _entityIds; // archetypeID -> global entityID mapping
+    std::vector<entityid> _entityIds; // archetypeID -> global entityID mapping for reverse lookup.
     std::unordered_map<entityid, archetypeid> _entityToArchetypeId;  // entityID -> archetypeID mapping
     std::tuple<std::vector<AComponents>...> _components; // Component storage
 };
