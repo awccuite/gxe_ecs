@@ -4,12 +4,9 @@
 #include <tuple>
 #include <vector>
 #include <cassert>
-#include <unordered_map>
+
 
 namespace gxe {
-
-using archetypeid = entityid;
-constexpr archetypeid NULL_ARCHETYPE_ID = std::numeric_limits<entityid>::max();
 
 // Archetypes are templated over components
 template<typename ...AComponents>
@@ -26,12 +23,16 @@ public:
 
     ~archetype() = default;
 
+    // Set the owner ECS (must be called before using entity operations)
+    void setOwner(ecs_base* owner) {
+        _owner = owner;
+    }
+
     // Add entity with components, returns archetypeID (index in this archetype)
     archetypeid addEntity(entityid id, const AComponents&... components) {
         archetypeid archId = static_cast<archetypeid>(_entityIds.size());
         
         _entityIds.push_back(id);
-        _entityToArchetypeId[id] = archId;
         
         std::apply([&](auto&... vecs) {
             (vecs.push_back(components), ...);
@@ -42,12 +43,13 @@ public:
 
     // Remove entity by entityid (performs swap-and-pop)
     void removeEntity(entityid id) {
-        auto it = _entityToArchetypeId.find(id);
-        if (it == _entityToArchetypeId.end()) {
+        assert(_owner && "Archetype owner not set");
+        
+        archetypeid archId = _owner->getArchetypeLocalId(id);
+        if (archId == NULL_ARCHETYPE_ID) {
             return;
         }
 
-        archetypeid archId = it->second;
         archetypeid lastArchId = static_cast<archetypeid>(_entityIds.size() - 1);
 
         // Swap with last element
@@ -62,8 +64,8 @@ public:
                 ((vecs[archId] = std::move(vecs[lastArchId])), ...);
             }, _components);
             
-            // Update mapping for swapped entity
-            _entityToArchetypeId[lastEntityId] = archId;
+            // Update mapping for swapped entity in the owner ECS
+            _owner->setArchetypeLocalId(lastEntityId, archId);
         }
 
         // Remove last elements
@@ -71,36 +73,36 @@ public:
         std::apply([](auto&... vecs) {
             (vecs.pop_back(), ...);
         }, _components);
-        
-        _entityToArchetypeId.erase(id);
     }
 
     // Get component for entity
     template<typename T>
     T& getComponent(entityid id) {
         static_assert((std::is_same_v<T, AComponents> || ...), "Component type not in archetype");
+        assert(_owner && "Archetype owner not set");
         
-        auto it = _entityToArchetypeId.find(id);
-        assert(it != _entityToArchetypeId.end() && "Entity not in archetype");
+        archetypeid archId = _owner->getArchetypeLocalId(id);
+        assert(archId != NULL_ARCHETYPE_ID && "Entity not in archetype");
         
-        archetypeid archId = it->second;
         return std::get<std::vector<T>>(_components)[archId];
     }
 
     template<typename T>
     const T& getComponent(entityid id) const {
         static_assert((std::is_same_v<T, AComponents> || ...), "Component type not in archetype");
+        assert(_owner && "Archetype owner not set");
         
-        auto it = _entityToArchetypeId.find(id);
-        assert(it != _entityToArchetypeId.end() && "Entity not in archetype");
+        archetypeid archId = _owner->getArchetypeLocalId(id);
+        assert(archId != NULL_ARCHETYPE_ID && "Entity not in archetype");
         
-        archetypeid archId = it->second;
         return std::get<std::vector<T>>(_components)[archId];
     }
 
     // Check if entity exists in this archetype
     bool hasEntity(entityid id) const {
-        return _entityToArchetypeId.find(id) != _entityToArchetypeId.end();
+        if (!_owner) return false;
+        archetypeid archId = _owner->getArchetypeLocalId(id);
+        return archId != NULL_ARCHETYPE_ID && archId < _entityIds.size();
     }
 
     template<typename C>
@@ -115,9 +117,10 @@ public:
 
     // Get archetypeID for entity
     archetypeid getArchetypeId(entityid id) const {
-        auto it = _entityToArchetypeId.find(id);
-        assert(it != _entityToArchetypeId.end() && "Entity not in archetype");
-        return it->second;
+        assert(_owner && "Archetype owner not set");
+        archetypeid archId = _owner->getArchetypeLocalId(id);
+        assert(archId != NULL_ARCHETYPE_ID && "Entity not in archetype");
+        return archId;
     }
 
     // Get entityID at archetype index
@@ -165,17 +168,14 @@ public:
 
     void clear() {
         _entityIds.clear();
-        _entityToArchetypeId.clear();
         std::apply([](auto&... vecs) {
             (vecs.clear(), ...);
         }, _components);
     }
 
 private:
+    ecs_base* _owner = nullptr;  // Non-owning pointer to parent ECS
     std::vector<entityid> _entityIds; // archetypeID -> global entityID mapping for reverse lookup.
-
-    // This information already lives in the ECS root. We should be able to get a pointer to our ecs root and access the efficient lookup that way.
-    std::unordered_map<entityid, archetypeid> _entityToArchetypeId;  // entityID -> archetypeID mapping
     std::tuple<std::vector<AComponents>...> _components; // Component storage
 };
 

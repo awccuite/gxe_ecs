@@ -12,12 +12,15 @@ namespace gxe {
 // Entity record stores which archetype an entity belongs to and its position within
 struct EntityRecord {
     size_t archetypeIndex; 
+    archetypeid localId;  // Index within the archetype's component arrays
     
     EntityRecord() 
-        : archetypeIndex(std::numeric_limits<size_t>::max()) {}
+        : archetypeIndex(std::numeric_limits<size_t>::max())
+        , localId(NULL_ARCHETYPE_ID) {}
     
-    EntityRecord(size_t archIdx)
-        : archetypeIndex(archIdx) {}
+    EntityRecord(size_t archIdx, archetypeid local)
+        : archetypeIndex(archIdx)
+        , localId(local) {}
     
     bool isValid() const {
         return archetypeIndex != std::numeric_limits<size_t>::max();
@@ -25,10 +28,9 @@ struct EntityRecord {
 };
 
 template<typename ...Archetypes>
-class ecs {
+class ecs : public ecs_base {
     static constexpr size_t N_ARCHETYPES = sizeof...(Archetypes);
 
-    // Helper to get archetype index at compile time
     template<typename T, typename First, typename ...Rest>
     static constexpr size_t archetypeIndexHelper() {
         if constexpr (std::is_same_v<T, First>) {
@@ -47,9 +49,27 @@ class ecs {
 public:
     ecs() {
         _entityRecords.reserve(INITIAL_SPARSE_SET_CAPACITY);
+        
+        // Set this ECS as owner for all archetypes
+        std::apply([this](auto&... archetypes) {
+            (archetypes.setOwner(this), ...);
+        }, _archetypes);
     }
     
-    ~ecs() = default;
+    ~ecs() override = default;
+
+    // ecs_base interface implementation
+    archetypeid getArchetypeLocalId(entityid id) const override {
+        if (id >= _entityRecords.size()) {
+            return NULL_ARCHETYPE_ID;
+        }
+        return _entityRecords[id].localId;
+    }
+    
+    void setArchetypeLocalId(entityid id, archetypeid localId) override {
+        assert(id < _entityRecords.size() && "Invalid entity ID");
+        _entityRecords[id].localId = localId;
+    }
 
     // Create entity in specified archetype
     template<typename Archetype, typename ...ComponentArgs>
@@ -68,10 +88,10 @@ public:
         // Add entity to the archetype
         constexpr size_t archIdx = archetypeIndex<Archetype>;
         auto& arch = std::get<Archetype>(_archetypes);
-        /* archetypeid archId = */ arch.addEntity(id, std::forward<ComponentArgs>(components)...);
+        archetypeid localId = arch.addEntity(id, std::forward<ComponentArgs>(components)...);
         
         // Record the entity's location
-        _entityRecords[id] = EntityRecord(archIdx);
+        _entityRecords[id] = EntityRecord(archIdx, localId);
         
         return id;
     }
