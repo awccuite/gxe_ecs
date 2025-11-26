@@ -11,6 +11,7 @@ namespace gxe {
 using archetypeid = entityid;
 constexpr archetypeid NULL_ARCHETYPE_ID = std::numeric_limits<entityid>::max();
 
+// Archetypes are templated over components
 template<typename ...AComponents>
 class archetype {
     static constexpr size_t N_COMPONENTS = sizeof...(AComponents);
@@ -172,6 +173,8 @@ public:
 
 private:
     std::vector<entityid> _entityIds; // archetypeID -> global entityID mapping for reverse lookup.
+
+    // This information already lives in the ECS root. We should be able to get a pointer to our ecs root and access the efficient lookup that way.
     std::unordered_map<entityid, archetypeid> _entityToArchetypeId;  // entityID -> archetypeID mapping
     std::tuple<std::vector<AComponents>...> _components; // Component storage
 };

@@ -20,7 +20,6 @@ public:
 
     template <typename Self>
     void update(this Self&& self, float dt){ // Update method called per frame.
-        // Constexpr eval should update every frame (if possible)
         if (self._tickrate == 0){
             self.tick(dt);
             return;
@@ -33,13 +32,6 @@ public:
             self._accumulatedTime -= self._secsPerTick;
         }
     };
-
-    // Update method that functions regardless of dt. Requires system has per fram updates enabled.
-    // template <typename Self>
-    // void update(this Self&& self){
-    //     static_assert(self._tickrate == 0, "Untimed system update requires tickrate == 0");
-    //     self.tick(0.0f);
-    // }
 
 protected:
     const uint32_t _tickrate;
@@ -74,8 +66,5 @@ private:
         }
     }
 
-    // Zero overhead for inherited systems,
-    // only exists when needed.
     std::optional<std::function<void(float)>> _tickImpl;
-    std::tuple<C...> _components;
 };

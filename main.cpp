@@ -24,14 +24,6 @@ struct Velocity { // Needs to be units/sec
     float dx, dy;
 };
 
-struct Health {
-    int hp;
-};
-
-struct Mass {
-    float mass;
-};
-
 struct Lifetime {
     float ttl;
 };
@@ -40,15 +32,22 @@ struct EColor {
     size_t col;
 };
 
+// Static collision with other collision objects
+struct Hitbox2D { // Simple 2d Hitbox, has a width and height
+    float width, height;
+};
+
 int main() {
     using namespace gxe;
     using StaticEntity = archetype<Position, Velocity, Lifetime, EColor>;
+    // using PhsyicsEntity = archetype<Position, Velocity, Hitbox2D, EColor>;
 
     constexpr size_t COLOR_COUNT = 21;
     std::array<Color, COLOR_COUNT> colors{
         DARKGRAY, MAROON, ORANGE, DARKGREEN, DARKBLUE, DARKPURPLE, DARKBROWN,
         GRAY, RED, GOLD, LIME, BLUE, VIOLET, BROWN, LIGHTGRAY, PINK, YELLOW,
-        GREEN, SKYBLUE, PURPLE, BEIGE };
+        GREEN, SKYBLUE, PURPLE, BEIGE 
+    };
 
     ecs<StaticEntity> ecs;
     System mover(0); // Framerate independent system

@@ -11,15 +11,13 @@ namespace gxe {
 
 // Entity record stores which archetype an entity belongs to and its position within
 struct EntityRecord {
-    size_t archetypeIndex;  // Which archetype in the tuple
-    archetypeid archetypeId; // Position within that archetype's arrays
+    size_t archetypeIndex; 
     
     EntityRecord() 
-        : archetypeIndex(std::numeric_limits<size_t>::max())
-        , archetypeId(NULL_ARCHETYPE_ID) {}
+        : archetypeIndex(std::numeric_limits<size_t>::max()) {}
     
-    EntityRecord(size_t archIdx, archetypeid archId)
-        : archetypeIndex(archIdx), archetypeId(archId) {}
+    EntityRecord(size_t archIdx)
+        : archetypeIndex(archIdx) {}
     
     bool isValid() const {
         return archetypeIndex != std::numeric_limits<size_t>::max();
@@ -70,10 +68,10 @@ public:
         // Add entity to the archetype
         constexpr size_t archIdx = archetypeIndex<Archetype>;
         auto& arch = std::get<Archetype>(_archetypes);
-        archetypeid archId = arch.addEntity(id, std::forward<ComponentArgs>(components)...);
+        /* archetypeid archId = */ arch.addEntity(id, std::forward<ComponentArgs>(components)...);
         
         // Record the entity's location
-        _entityRecords[id] = EntityRecord(archIdx, archId);
+        _entityRecords[id] = EntityRecord(archIdx);
         
         return id;
     }
@@ -180,12 +178,6 @@ private:
     std::vector<EntityRecord> _entityRecords;  // Global entity ID -> archetype location
     std::tuple<Archetypes...> _archetypes;     // All archetype instances
     // Need a way to go from component -> archetypes
-
-    // Need a map generated at compile time from
-    // each component type, to all the registered archetypes.
-    // Step 1, unpack all component types, then add the
-    // archetype to each of the component maps it
-    // was a member of.
 };
 
 } // namespace gxe
