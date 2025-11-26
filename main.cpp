@@ -1,11 +1,8 @@
 #include "archetype_ecs/ecs.hpp"
 #include "archetype_ecs/systems/physics.hpp"
 #include "archetype_ecs/types.hpp"
-#include "archetype_ecs/system.hpp"
 
-#include <chrono>
 #include <array>
-#include <algorithm>
 #include <iostream>
 #include <cstdlib>
 
@@ -48,9 +45,37 @@ int main() {
     while(!WindowShouldClose()){
         ecs.step(); // Step the ecs
 
+        if(IsMouseButtonDown(MOUSE_LEFT_BUTTON)){ // Spawn an entity.
+            Vector2 mPos = GetMousePosition();
+            float x_vel = ((std::rand() % 2000) / 20.0f) - 50.0f;
+            float y_vel = ((std::rand() % 2000) / 20.0f) - 50.0f;
+            float lifetime = ((std::rand() % 100) / 50.0f) + 2.0f;
+            size_t col_index ((std::rand() % 21));
+
+            ecs.createEntity<StaticEntity>(
+                Position{mPos.x, mPos.y},
+                Velocity{x_vel, y_vel},
+                Lifetime{lifetime},
+                EColor{col_index}
+            );
+        }
+
         // Render Logic
         BeginDrawing(); // Tell raylib we are drawing
         ClearBackground(WHITE);
+
+        ecs.forEachWithComponents<Position, Lifetime, EColor>([&ecs, &circleTex, &colors](entityid id, Position& pos, Lifetime& lt, EColor& ecol){
+            DrawTexture(circleTex.texture,
+                pos.x - circleTex.texture.width / 2.0f,
+                pos.y - circleTex.texture.height / 2.0f,
+                colors[ecol.col]
+            );
+
+            lt.ttl -= GetFrameTime();
+            if(lt.ttl <= 0){
+                ecs.destroyEntity(id);
+            }
+        });
 
         EndDrawing(); // Finish drawing commands
     }

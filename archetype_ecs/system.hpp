@@ -57,7 +57,7 @@ protected:
 template <typename Derived, typename ECS>
 class SystemCRTP : public SystemBase {
 public:
-    SystemCRTP(uint32_t tickrate, ECS& world) 
+    SystemCRTP(ECS& world, uint32_t tickrate = 0) // Default of update as frequently as possible
         : SystemBase(tickrate), _world(world) {}
 
 protected:
