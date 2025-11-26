@@ -27,7 +27,7 @@ int main() {
     };
 
     ecs<StaticEntity> ecs;
-    ecs.registerSystem<PhysicsSystem>(30.0f);
+    ecs.registerSystem<PhysicsSystem>();
 
     std::cout << "Created systems" << std::endl;
 
@@ -42,12 +42,11 @@ int main() {
 
 
     std::cout << "Initialized raylib" << std::endl;
-
     std::cout << "Init complete" << std::endl;
 
     std::srand(std::time({}));
     while(!WindowShouldClose()){
-        ecs.step(GetFrameTime());
+        ecs.step(); // Step the ecs
 
         // Render Logic
         BeginDrawing(); // Tell raylib we are drawing

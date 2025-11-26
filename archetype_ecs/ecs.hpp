@@ -5,6 +5,7 @@
 #include "idManager.hpp"
 #include "system.hpp"
 
+#include <chrono>
 #include <tuple>
 #include <vector>
 #include <cassert>
@@ -197,7 +198,25 @@ public:
         return ref;
     }
 
-    // Update all registered systems
+    // Step that uses internal clock tracking
+    void step() {
+        auto now = std::chrono::steady_clock::now();
+        
+        if (!_initialized) {
+            _lastUpdate = now;
+            _initialized = true;
+            return;
+        }
+        
+        auto elapsed = now - _lastUpdate;
+        float dt = std::chrono::duration<float>(elapsed).count();
+        
+        step(dt);
+
+        _lastUpdate = now;
+    }
+
+    // API for allowing specific DT to be passed into the update loop.
     void step(float dt) {
         for (auto& system : _systems) {
             system->update(dt);
@@ -226,6 +245,10 @@ private:
     std::vector<EntityRecord> _entityRecords;  // Global entity ID -> archetype location
     std::tuple<Archetypes...> _archetypes;     // All archetype instances
     std::vector<std::unique_ptr<SystemBase>> _systems;  // Registered systems
+
+    // ECS should maintain their own internal timesteps in seconds.
+    std::chrono::time_point<std::chrono::steady_clock> _lastUpdate;
+    bool _initialized = false;
 };
 
 } // namespace gxe

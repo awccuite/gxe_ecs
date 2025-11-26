@@ -2,6 +2,7 @@
 
 #include <functional>
 #include <optional>
+#include <iostream>
 
 // Systems can be created to update at some frequency T,
 // or triggered manually.
@@ -10,8 +11,8 @@
 // a pointer to the ECS.
 
 // Systems should be archetype agnostic, instead utilizing components.
-
 // Base class handling tick rate and time accumulation
+
 class SystemBase {
 public:
     SystemBase(uint32_t tickrate):
