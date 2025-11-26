@@ -24,8 +24,8 @@ public:
     ~archetype() = default;
 
     // Set the owner ECS (must be called before using entity operations)
-    void setOwner(ecs_base* owner) {
-        _owner = owner;
+    void setWorld(ecs_base* world) {
+        _world = world;
     }
 
     // Add entity with components, returns archetypeID (index in this archetype)
@@ -43,9 +43,9 @@ public:
 
     // Remove entity by entityid (performs swap-and-pop)
     void removeEntity(entityid id) {
-        assert(_owner && "Archetype owner not set");
+        assert(_world && "Archetype owner not set");
         
-        archetypeid archId = _owner->getArchetypeLocalId(id);
+        archetypeid archId = _world->getArchetypeLocalId(id);
         if (archId == NULL_ARCHETYPE_ID) {
             return;
         }
@@ -65,7 +65,7 @@ public:
             }, _components);
             
             // Update mapping for swapped entity in the owner ECS
-            _owner->setArchetypeLocalId(lastEntityId, archId);
+            _world->setArchetypeLocalId(lastEntityId, archId);
         }
 
         // Remove last elements
@@ -79,9 +79,9 @@ public:
     template<typename T>
     T& getComponent(entityid id) {
         static_assert((std::is_same_v<T, AComponents> || ...), "Component type not in archetype");
-        assert(_owner && "Archetype owner not set");
+        assert(_world && "Archetype owner not set");
         
-        archetypeid archId = _owner->getArchetypeLocalId(id);
+        archetypeid archId = _world->getArchetypeLocalId(id);
         assert(archId != NULL_ARCHETYPE_ID && "Entity not in archetype");
         
         return std::get<std::vector<T>>(_components)[archId];
@@ -90,9 +90,9 @@ public:
     template<typename T>
     const T& getComponent(entityid id) const {
         static_assert((std::is_same_v<T, AComponents> || ...), "Component type not in archetype");
-        assert(_owner && "Archetype owner not set");
+        assert(_world && "Archetype owner not set");
         
-        archetypeid archId = _owner->getArchetypeLocalId(id);
+        archetypeid archId = _world->getArchetypeLocalId(id);
         assert(archId != NULL_ARCHETYPE_ID && "Entity not in archetype");
         
         return std::get<std::vector<T>>(_components)[archId];
@@ -100,8 +100,8 @@ public:
 
     // Check if entity exists in this archetype
     bool hasEntity(entityid id) const {
-        if (!_owner) return false;
-        archetypeid archId = _owner->getArchetypeLocalId(id);
+        if (!_world) return false;
+        archetypeid archId = _world->getArchetypeLocalId(id);
         return archId != NULL_ARCHETYPE_ID && archId < _entityIds.size();
     }
 
@@ -117,8 +117,8 @@ public:
 
     // Get archetypeID for entity
     archetypeid getArchetypeId(entityid id) const {
-        assert(_owner && "Archetype owner not set");
-        archetypeid archId = _owner->getArchetypeLocalId(id);
+        assert(_world && "Archetype owner not set");
+        archetypeid archId = _world->getArchetypeLocalId(id);
         assert(archId != NULL_ARCHETYPE_ID && "Entity not in archetype");
         return archId;
     }
@@ -174,9 +174,12 @@ public:
     }
 
 private:
-    ecs_base* _owner = nullptr;  // Non-owning pointer to parent ECS
+    // Members
     std::vector<entityid> _entityIds; // archetypeID -> global entityID mapping for reverse lookup.
     std::tuple<std::vector<AComponents>...> _components; // Component storage
+
+    // Reference
+    ecs_base* _world = nullptr;  // Non-owning pointer to parent ECS
 };
 
 } // namespace gxe

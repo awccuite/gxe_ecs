@@ -32,8 +32,7 @@ struct EColor {
     size_t col;
 };
 
-// Static collision with other collision objects
-struct Hitbox2D { // Simple 2d Hitbox, has a width and height
+struct Hitbox2D {
     float width, height;
 };
 
