@@ -9,7 +9,6 @@
 
 namespace gxe {
 
-// Entity record stores which archetype an entity belongs to and its position within
 struct EntityRecord {
     size_t archetypeIndex; 
     archetypeid localId;  // Index within the archetype's component arrays
@@ -52,7 +51,7 @@ public:
         
         // Set this ECS as owner for all archetypes
         std::apply([this](auto&... archetypes) {
-            (archetypes.setOwner(this), ...);
+            (archetypes.setWorld(this), ...);
         }, _archetypes);
     }
     
