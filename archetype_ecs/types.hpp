@@ -26,4 +26,29 @@ public:
     virtual void setArchetypeLocalId(entityid id, archetypeid localId) = 0;
 };
 
+// Example component types
+struct Position {
+    float x, y;
+};
+
+struct Velocity { // Needs to be units/sec
+    float dx, dy;
+};
+
+struct Lifetime {
+    float ttl;
+};
+
+struct EColor {
+    size_t col;
+};
+
+struct AABB {
+    float xmin, xmax, ymin, ymax;
+};
+
+struct Circle {
+    float radius, xpos, ypos;
+};
+
 } // namespace gxe

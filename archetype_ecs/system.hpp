@@ -11,40 +11,63 @@
 
 // Systems should be archetype agnostic, instead utilizing components.
 
+// Base class handling tick rate and time accumulation
 class SystemBase {
 public:
     SystemBase(uint32_t tickrate):
-    _tickrate(tickrate),
-    _accumulatedTime(0.0f),
-    _secsPerTick(tickrate > 0 ? 1.0f / tickrate : 0.0f) {};
+        _tickrate(tickrate),
+        _accumulatedTime(0.0f),
+        _secsPerTick(tickrate > 0 ? 1.0f / tickrate : 0.0f) {};
 
-    template <typename Self>
-    void update(this Self&& self, float dt){ // Update method called per frame.
-        if (self._tickrate == 0){
-            self.tick(dt);
+    virtual ~SystemBase() = default;
+
+    // Virtual update for polymorphic calls through base pointer
+    void update(float dt) {
+        if (_tickrate == 0) {
+            tick(dt);
             return;
         }
 
-        self._accumulatedTime += dt;
+        _accumulatedTime += dt;
 
-        while(self._accumulatedTime >= self._secsPerTick){
-            self.tick(self._secsPerTick); // Ducktyped tick() method invocation.
-            self._accumulatedTime -= self._secsPerTick;
+        while (_accumulatedTime >= _secsPerTick) {
+            tick(_secsPerTick);
+            _accumulatedTime -= _secsPerTick;
         }
-    };
+    }
+
+    uint32_t tickrate() const { return _tickrate; }
 
 protected:
+    virtual void tick(float dt) = 0;
+
     const uint32_t _tickrate;
     float _accumulatedTime;
     float _secsPerTick;
 };
 
-// CRTP system interface without virtual overhead
-template <typename ...C>
-class System : public SystemBase {
+// CRTP base for custom systems - derive from this to create your own system types
+// Usage:
+//   class MyPhysicsSystem : public SystemCRTP<MyPhysicsSystem, ECSType> {
+//   public:
+//       MyPhysicsSystem(ECSType& ecs) : SystemCRTP(60, ecs) {}
+//       void tick(float dt) { /* custom logic using _ecs */ }
+//   };
+template <typename Derived, typename ECS>
+class SystemCRTP : public SystemBase {
 public:
-    System(uint32_t tickrate) : SystemBase(tickrate) {};
-    ~System() = default;
+    SystemCRTP(uint32_t tickrate, ECS& world) 
+        : SystemBase(tickrate), _world(world) {}
+
+protected:
+    ECS& _world; // Reference to the world with which this system operates in
+};
+
+// Lambda-based system for quick inline definitions (original behavior)
+class LambdaSystem : public SystemBase {
+public:
+    LambdaSystem(uint32_t tickrate) : SystemBase(tickrate) {};
+    ~LambdaSystem() = default;
 
     // Set tick to some function F.
     template<typename F>
@@ -58,13 +81,13 @@ public:
         };
     }
 
-private:
-    friend class SystemBase;
-    void tick(float sysDelta) {
+protected:
+    void tick(float sysDelta) override {
         if(_tickImpl){
             (*_tickImpl)(sysDelta);
         }
     }
 
+private:
     std::optional<std::function<void(float)>> _tickImpl;
 };

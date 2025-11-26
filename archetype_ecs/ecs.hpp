@@ -3,9 +3,12 @@
 #include "archetype.hpp"
 #include "archetype_ecs/types.hpp"
 #include "idManager.hpp"
+#include "system.hpp"
+
 #include <tuple>
 #include <vector>
 #include <cassert>
+#include <memory>
 
 namespace gxe {
 
@@ -179,6 +182,32 @@ public:
         return _entityRecords[id].archetypeIndex;
     }
 
+    // Register a system using a template-template parameter
+    // Usage: ecs.registerSystem<PhysicsSystem>(args...)
+    // where PhysicsSystem is a template that takes ECS type
+    template<template<typename> class SystemTemplate, typename... Args>
+    auto& registerSystem(Args&&... args) {
+        using ConcreteSystem = SystemTemplate<ecs<Archetypes...>>;
+        static_assert(std::is_base_of_v<SystemBase, ConcreteSystem>, 
+                      "System must derive from SystemBase");
+        
+        auto system = std::make_unique<ConcreteSystem>(*this, std::forward<Args>(args)...);
+        auto& ref = *system;
+        _systems.push_back(std::move(system));
+        return ref;
+    }
+
+    // Update all registered systems
+    void step(float dt) {
+        for (auto& system : _systems) {
+            system->update(dt);
+        }
+    }
+
+    size_t systemCount() const {
+        return _systems.size();
+    }
+
 private:
     // Runtime dispatch to remove entity from archetype by index
     template<size_t Index = 0>
@@ -196,7 +225,7 @@ private:
     idManager _idManager;
     std::vector<EntityRecord> _entityRecords;  // Global entity ID -> archetype location
     std::tuple<Archetypes...> _archetypes;     // All archetype instances
-    // Need a way to go from component -> archetypes
+    std::vector<std::unique_ptr<SystemBase>> _systems;  // Registered systems
 };
 
 } // namespace gxe
